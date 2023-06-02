@@ -3,6 +3,7 @@ import {Store} from './store';
 import {ClientEvents, ServerEvents} from './EventNames';
 import {transaction} from 'mobx';
 import config from '../../config';
+
 export class Socket {
   io: IOSocket;
   store: Store;
@@ -28,6 +29,11 @@ export class Socket {
       for (let i = 0; i < payload.servers.length; i++) {
         const server = payload.servers[i];
         this.store.servers.addCache(server);
+      }
+
+      for (let i = 0; i < payload.channels.length; i++) {
+        const channels = payload.channels[i];
+        this.store.channels.addCache(channels);
       }
     });
   }

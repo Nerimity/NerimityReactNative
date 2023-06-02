@@ -12,19 +12,29 @@ import {
 } from 'react-native';
 import {useStore} from '../store/store';
 import {Server} from '../store/servers';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+//import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {
   MainScreenNavigationProp,
   MainScreenRouteProp,
-  RootStackParamList,
+  //RootStackParamList,
 } from '../../App';
+import {Channel} from '../store/channels';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
-
+// type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 const styles = StyleSheet.create({
-  pageContainer: {flexDirection: 'row', height: '100%'},
-  serverListContainer: {backgroundColor: '#131416', height: '100%'},
+  pageContainer: {
+    backgroundColor: '#131416',
+    flexDirection: 'row',
+  },
+  serverListContainer: {height: '100%'},
+  serverPane: {
+    backgroundColor: 'rgb(35 38 41)',
+    padding: 5,
+    flex: 1,
+    margin: 10,
+    borderRadius: 16,
+  },
   serverItemContainer: {
     alignSelf: 'flex-start',
     overflow: 'hidden',
@@ -45,16 +55,42 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function LoggedInView(props: Props) {
+export default function LoggedInView() {
   return (
     <View style={styles.pageContainer}>
       <View>
         <ServerListPane />
       </View>
-      <Text>{props.route.params?.serverId || 'Not Selected'}</Text>
+
+      <ServerPane />
     </View>
   );
 }
+
+const ServerPane = () => {
+  const route = useRoute<MainScreenRouteProp>();
+  const {servers} = useStore();
+
+  const server = servers.cache[route.params?.serverId!];
+  console.log('render!!!!');
+
+  return (
+    <View style={styles.serverPane}>
+      <Text>{server?.name || 'Not Selected'}</Text>
+      <ServerChannelList channels={server?.channels || []} />
+    </View>
+  );
+};
+
+const ServerChannelList = observer((props: {channels: Channel[]}) => {
+  return (
+    <View>
+      {props.channels.map(channel => (
+        <Text key={channel.id}>{channel.name!}</Text>
+      ))}
+    </View>
+  );
+});
 
 const ServerListPane = observer(() => {
   const {servers} = useStore();
