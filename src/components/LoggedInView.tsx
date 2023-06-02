@@ -1,4 +1,4 @@
-import React, {startTransition, useEffect} from 'react';
+import React, {startTransition} from 'react';
 import {observer} from 'mobx-react-lite';
 import {
   Image,
@@ -8,6 +8,7 @@ import {
   ViewStyle,
   StyleProp,
   View,
+  StyleSheet,
 } from 'react-native';
 import {useStore} from '../store/store';
 import {Server} from '../store/servers';
@@ -21,9 +22,32 @@ import {
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 
+const styles = StyleSheet.create({
+  pageContainer: {flexDirection: 'row', height: '100%'},
+  serverListContainer: {backgroundColor: '#131416', height: '100%'},
+  serverItemContainer: {
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    borderRadius: 30,
+  },
+  serverItemPressable: {alignItems: 'center', justifyContent: 'center'},
+  selectedHandle: {
+    height: 15,
+    position: 'absolute',
+    left: 5,
+    width: 2,
+    backgroundColor: '#77a8f3',
+  },
+  avatarContainer: {
+    margin: 10,
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+});
+
 export default function LoggedInView(props: Props) {
   return (
-    <View style={{flexDirection: 'row', height: '100%'}}>
+    <View style={styles.pageContainer}>
       <View>
         <ServerListPane />
       </View>
@@ -37,7 +61,7 @@ const ServerListPane = observer(() => {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      style={{backgroundColor: '#131416', height: '100%'}}>
+      style={styles.serverListContainer}>
       {servers.array.map(server => (
         <ServerItem server={server} key={server.id} />
       ))}
@@ -52,10 +76,9 @@ const ServerItem = (props: {server: Server}) => {
   const selected = route.params?.serverId === props.server.id;
 
   return (
-    <View
-      style={{alignSelf: 'flex-start', overflow: 'hidden', borderRadius: 30}}>
+    <View style={styles.serverItemContainer}>
       <Pressable
-        style={{alignItems: 'center', justifyContent: 'center'}}
+        style={styles.serverItemPressable}
         android_ripple={{color: 'gray'}}
         onPress={() =>
           startTransition(() =>
@@ -70,14 +93,7 @@ const ServerItem = (props: {server: Server}) => {
 };
 
 const SelectedHandle = (props: {selected?: boolean}) => {
-  const styles: StyleProp<ViewStyle> = {
-    height: 15,
-    position: 'absolute',
-    left: 5,
-    width: 2,
-    backgroundColor: '#77a8f3',
-  };
-  return props.selected ? <View style={styles} /> : null;
+  return props.selected ? <View style={styles.selectedHandle} /> : null;
 };
 
 interface AvatarProps {
@@ -88,18 +104,15 @@ interface AvatarProps {
 const Avatar = (props: AvatarProps) => {
   const serverOrUser = props.server || props.user;
 
-  const styles: StyleProp<ViewStyle> = {
+  const avatarStyles: StyleProp<ViewStyle> = {
+    backgroundColor: serverOrUser?.avatar ? undefined : serverOrUser?.hexColor,
+    borderRadius: props.size,
     width: props.size,
     height: props.size,
-    margin: 10,
-    borderRadius: props.size,
-    overflow: 'hidden',
-    flexShrink: 0,
-    backgroundColor: serverOrUser?.avatar ? undefined : serverOrUser?.hexColor,
   };
 
   return (
-    <View style={styles}>
+    <View style={[styles.avatarContainer, avatarStyles]}>
       {!!serverOrUser?.avatar && (
         <Image
           source={{
