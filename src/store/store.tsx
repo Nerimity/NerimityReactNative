@@ -2,12 +2,15 @@ import React from 'react';
 import {Socket} from './Socket';
 import {Servers} from './servers';
 import {Channels} from './channels';
+import {Messages} from './messages';
 
 export class Store {
   socket: Socket;
   servers: Servers;
   channels: Channels;
+  messages: Messages;
   constructor() {
+    this.messages = new Messages(this);
     this.channels = new Channels(this);
     this.servers = new Servers(this);
     this.socket = new Socket(this);

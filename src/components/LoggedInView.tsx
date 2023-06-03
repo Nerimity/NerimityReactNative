@@ -86,8 +86,7 @@ const ServerChannelItem = (props: {channel: Channel}) => {
             serverId: props.channel.serverId,
           }),
         )
-      }
-      selected>
+      }>
       <View style={styles.serverChannelItem}>
         <Text style={{color: 'rgb(255,255,255)'}}>{props.channel.name}</Text>
       </View>

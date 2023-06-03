@@ -2,8 +2,8 @@ import React from 'react';
 import {Image, View, StyleProp, ViewStyle, StyleSheet} from 'react-native';
 
 interface AvatarProps {
-  server?: {avatar?: string; avatarUrl: string; hexColor: string};
-  user?: {avatar?: string; avatarUrl: string; hexColor: string};
+  server?: {avatar?: string; hexColor: string};
+  user?: {avatar?: string; hexColor: string};
   size: number;
 }
 
@@ -22,7 +22,7 @@ export default function Avatar(props: AvatarProps) {
       {!!serverOrUser?.avatar && (
         <Image
           source={{
-            uri: serverOrUser.avatarUrl,
+            uri: `https://cdn.nerimity.com/${serverOrUser.avatar}`,
             width: props.size,
             height: props.size,
           }}

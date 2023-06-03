@@ -1,6 +1,7 @@
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, runInAction} from 'mobx';
 import {RawMessage} from './RawData';
 import {Store} from './store';
+import {fetchMessages} from '../services/MessageService';
 
 export class Messages {
   cache: Record<string, RawMessage[]> = {};
@@ -9,7 +10,15 @@ export class Messages {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
-  addMessages(channelId: string, messages: RawMessage[]) {
-    this.cache[channelId] = messages;
+  async fetchAndCacheMessages(channelId: string, force = false) {
+    if (this.cache[channelId] && !force) {
+      return;
+    }
+    const messages = await fetchMessages(channelId);
+    runInAction(() => (this.cache[channelId] = messages));
+  }
+  get channelMessages() {
+    return (channelId: string) =>
+      this.cache[channelId] as RawMessage[] | undefined;
   }
 }
