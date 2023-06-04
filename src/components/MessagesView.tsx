@@ -8,6 +8,7 @@ import {observer} from 'mobx-react-lite';
 import MessageItem from './MessageItem';
 
 import CustomButton from './ui/CustomButton';
+import Header from './ui/Header';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -26,7 +27,7 @@ const useChannelMessages = () => {
 export default function MessagesView() {
   return (
     <View style={styles.pageContainer}>
-      <Header />
+      <PageHeader />
       <MessageList />
       <InputArea />
     </View>
@@ -82,16 +83,12 @@ const CustomInput = () => {
   );
 };
 
-const Header = () => {
+const PageHeader = () => {
   const route = useRoute<MainScreenRouteProp>();
   const {channels} = useStore();
 
   const channel = channels.cache[route.params.channelId];
-  return (
-    <View style={styles.header}>
-      <Text style={styles.headerText}>{channel?.name || '...'}</Text>
-    </View>
-  );
+  return <Header title={channel?.name || '...'} />;
 };
 
 const styles = StyleSheet.create({
@@ -99,15 +96,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#232629',
     flexDirection: 'column',
     height: '100%',
-  },
-  header: {
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-    borderBottomWidth: 1,
-    borderBottomStyle: 'solid',
-    padding: 15,
-  },
-  headerText: {
-    color: 'white',
   },
   customInputContainer: {
     flexDirection: 'row',

@@ -14,6 +14,7 @@ import {Channel} from '../store/channels';
 import CustomPressable from './ui/CustomPressable';
 import Avatar from './ui/Avatar';
 import {RootStackParamList} from '../../App';
+import Header from './ui/Header';
 
 // type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 const styles = StyleSheet.create({
@@ -30,9 +31,12 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     borderRadius: 16,
   },
+  serverChannelListContainer: {
+    paddingTop: 5,
+  },
   serverChannelItem: {
     marginLeft: 13,
-    padding: 5,
+    padding: 10,
     width: '100%',
   },
   serverItemContainer: {
@@ -63,7 +67,7 @@ const ServerPane = () => {
 
   return (
     <View style={styles.serverPane}>
-      <Text>{server?.name || 'Not Selected'}</Text>
+      <Header title={server?.name || '...'} />
       <ServerChannelList channels={server?.channels || []} />
     </View>
   );
@@ -71,7 +75,7 @@ const ServerPane = () => {
 
 const ServerChannelList = observer((props: {channels: Channel[]}) => {
   return (
-    <View>
+    <View style={styles.serverChannelListContainer}>
       {props.channels.map(channel => (
         <ServerChannelItem key={channel.id} channel={channel} />
       ))}
@@ -92,7 +96,9 @@ const ServerChannelItem = (props: {channel: Channel}) => {
         )
       }>
       <View style={styles.serverChannelItem}>
-        <Text style={{color: 'rgb(255,255,255)'}}>{props.channel.name}</Text>
+        <Text numberOfLines={1} style={{color: 'rgb(255,255,255)'}}>
+          {props.channel.name}
+        </Text>
       </View>
     </CustomPressable>
   );
