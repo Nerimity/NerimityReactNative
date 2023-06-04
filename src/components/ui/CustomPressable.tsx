@@ -38,8 +38,9 @@ const styles = StyleSheet.create({
   selectedHandle: {
     height: 15,
     position: 'absolute',
-    left: 5,
-    width: 2,
+    left: 0,
+    borderRadius: 8,
+    width: 3,
     backgroundColor: '#77a8f3',
   },
 });

@@ -10,12 +10,17 @@ export class Messages {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+
+  addMessage(channelId: string, message: RawMessage) {
+    this.store.messages.cache[channelId].unshift(message);
+  }
+
   async fetchAndCacheMessages(channelId: string, force = false) {
     if (this.cache[channelId] && !force) {
       return;
     }
     const messages = await fetchMessages(channelId);
-    runInAction(() => (this.cache[channelId] = messages));
+    runInAction(() => (this.cache[channelId] = messages.reverse()));
   }
   get channelMessages() {
     return (channelId: string) =>

@@ -3,6 +3,7 @@ import {Store} from './store';
 import {ClientEvents, ServerEvents} from './EventNames';
 import {transaction} from 'mobx';
 import config from '../../config';
+import {RawMessage} from './RawData';
 
 export class Socket {
   io: IOSocket;
@@ -18,6 +19,8 @@ export class Socket {
       ServerEvents.USER_AUTHENTICATED,
       this.onAuthenticated.bind(this),
     );
+
+    this.io.on(ServerEvents.MESSAGE_CREATED, this.onMessageCreated.bind(this));
   }
   onConnect() {
     console.log('Authenticating...');
@@ -36,5 +39,9 @@ export class Socket {
         this.store.channels.addCache(channels);
       }
     });
+  }
+  onMessageCreated(payload: {message: RawMessage}) {
+    this.store.messages.addMessage(payload.message.channelId, payload.message);
+    console.log(payload);
   }
 }

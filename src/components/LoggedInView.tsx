@@ -21,18 +21,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#131416',
     flexDirection: 'row',
   },
-  serverListContainer: {height: '100%'},
+  serverListContainer: {height: '100%', marginLeft: 5, marginRight: 5},
   serverPane: {
     backgroundColor: 'rgb(35 38 41)',
     padding: 5,
     flex: 1,
     margin: 10,
+    marginLeft: 0,
     borderRadius: 16,
   },
   serverChannelItem: {
     marginLeft: 13,
     padding: 5,
     width: '100%',
+  },
+  serverItemContainer: {
+    margin: 10,
   },
 });
 
@@ -119,7 +123,9 @@ const ServerItem = (props: {server: Server}) => {
       onPress={() =>
         startTransition(() => nav.navigate('Main', {serverId: props.server.id}))
       }>
-      <Avatar size={50} server={props.server} />
+      <View style={styles.serverItemContainer}>
+        <Avatar size={50} server={props.server} />
+      </View>
     </CustomPressable>
   );
 };

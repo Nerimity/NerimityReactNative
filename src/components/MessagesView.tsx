@@ -1,12 +1,11 @@
 import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 
-import {View, ScrollView, StyleSheet, Text} from 'react-native';
+import {View, StyleSheet, Text, FlatList} from 'react-native';
 import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
-import {RawMessage} from '../store/RawData';
-import Avatar from './ui/Avatar';
+import MessageItem from './MessageItem';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -33,33 +32,21 @@ export default function MessagesView() {
 
 const MessageList = observer(() => {
   const messages = useChannelMessages();
-  const [load, setLoad] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoad(true);
-    }, 50);
-  }, []);
 
   return (
-    <ScrollView>
-      {load &&
-        messages &&
-        messages.map(message => (
-          <MessageItem key={message.id} message={message} />
-        ))}
-    </ScrollView>
+    <>
+      {messages && (
+        <FlatList
+          data={messages.slice()}
+          keyExtractor={item => item.id}
+          renderItem={props => <MessageItem {...props} />}
+          inverted
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </>
   );
 });
-
-const MessageItem = (props: {message: RawMessage}) => {
-  return (
-    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-      <Avatar size={20} user={props.message.createdBy} />
-      <Text>{props.message.content}</Text>
-    </View>
-  );
-};
 
 const Header = () => {
   const route = useRoute<MainScreenRouteProp>();

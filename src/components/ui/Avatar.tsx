@@ -1,5 +1,6 @@
 import React from 'react';
-import {Image, View, StyleProp, ViewStyle, StyleSheet} from 'react-native';
+import {View, StyleProp, ViewStyle, StyleSheet} from 'react-native';
+import FastImage from 'react-native-fast-image';
 
 interface AvatarProps {
   server?: {avatar?: string; hexColor: string};
@@ -20,12 +21,13 @@ export default function Avatar(props: AvatarProps) {
   return (
     <View style={[styles.avatarContainer, avatarStyles]}>
       {!!serverOrUser?.avatar && (
-        <Image
+        <FastImage
+          style={{width: props.size, height: props.size}}
           source={{
             uri: `https://cdn.nerimity.com/${serverOrUser.avatar}`,
-            width: props.size,
-            height: props.size,
+            priority: FastImage.priority.normal,
           }}
+          resizeMode="cover"
         />
       )}
     </View>
@@ -34,7 +36,6 @@ export default function Avatar(props: AvatarProps) {
 
 const styles = StyleSheet.create({
   avatarContainer: {
-    margin: 10,
     overflow: 'hidden',
     flexShrink: 0,
   },
