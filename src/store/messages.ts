@@ -1,7 +1,7 @@
 import {makeAutoObservable, runInAction} from 'mobx';
 import {RawMessage} from './RawData';
 import {Store} from './store';
-import {fetchMessages} from '../services/MessageService';
+import {fetchMessages, postMessage} from '../services/MessageService';
 
 export class Messages {
   cache: Record<string, RawMessage[]> = {};
@@ -12,7 +12,7 @@ export class Messages {
   }
 
   addMessage(channelId: string, message: RawMessage) {
-    this.store.messages.cache[channelId].unshift(message);
+    this.store.messages.cache[channelId]?.unshift?.(message);
   }
 
   async fetchAndCacheMessages(channelId: string, force = false) {
@@ -22,6 +22,17 @@ export class Messages {
     const messages = await fetchMessages(channelId);
     runInAction(() => (this.cache[channelId] = messages.reverse()));
   }
+
+  async postMessage(channelId: string, content: string) {
+    const message = await postMessage({
+      channelId,
+      content,
+      socketId: this.store.socket.io.id,
+    });
+    // runInAction(() => (this.cache[channelId] = messages.reverse()));
+    this.addMessage(channelId, message);
+  }
+
   get channelMessages() {
     return (channelId: string) =>
       this.cache[channelId] as RawMessage[] | undefined;

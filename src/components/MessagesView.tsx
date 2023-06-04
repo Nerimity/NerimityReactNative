@@ -1,5 +1,5 @@
 import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {View, StyleSheet, Text, FlatList, TextInput} from 'react-native';
 import {RootStackParamList} from '../../App';
@@ -60,14 +60,24 @@ const InputArea = () => {
 };
 
 const CustomInput = () => {
+  const route = useRoute<MainScreenRouteProp>();
+  const {messages} = useStore();
+  const [message, setMessage] = useState('');
+  const onSend = useCallback(() => {
+    messages.postMessage(route.params.channelId, message);
+    setMessage('');
+  }, [message, messages, route.params.channelId]);
+
   return (
     <View style={styles.customInputContainer}>
       <TextInput
         style={styles.customInput}
         placeholder="Message..."
         multiline
+        onChangeText={text => setMessage(text)}
+        defaultValue={message}
       />
-      <CustomButton title="Send" onPress={() => {}} />
+      <CustomButton title="Send" onPress={onSend} />
     </View>
   );
 };

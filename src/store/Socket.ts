@@ -40,8 +40,10 @@ export class Socket {
       }
     });
   }
-  onMessageCreated(payload: {message: RawMessage}) {
+  onMessageCreated(payload: {message: RawMessage; socketId?: string}) {
+    if (payload.socketId === this.io.id) {
+      return;
+    }
     this.store.messages.addMessage(payload.message.channelId, payload.message);
-    console.log(payload);
   }
 }
