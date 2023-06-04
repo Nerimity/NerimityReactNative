@@ -29,7 +29,6 @@ export class Messages {
       content,
       socketId: this.store.socket.io.id,
     });
-    // runInAction(() => (this.cache[channelId] = messages.reverse()));
     this.addMessage(channelId, message);
   }
 
