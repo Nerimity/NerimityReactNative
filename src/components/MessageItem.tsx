@@ -4,7 +4,9 @@ import {MessageType, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
 import {useStore} from '../store/store';
-
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import {observer} from 'mobx-react-lite';
+import {Message, MessageSentStatus} from '../store/messages';
 export default function MessageItem(props: {item: RawMessage; index: number}) {
   const {messages} = useStore();
   const channelMessages = messages.cache[props.item.channelId];
@@ -50,12 +52,40 @@ const Details = (props: {message: RawMessage}) => {
   );
 };
 
-const Content = (props: {message: RawMessage}) => {
+const Content = observer((props: {message: RawMessage}) => {
   return (
     <View>
-      <Text>{props.message.content}</Text>
+      <Text>
+        {props.message.content}
+        <SentStatus message={props.message} />
+      </Text>
     </View>
   );
+});
+const SentStatus = (props: {message: Message}) => {
+  let status: string | null = null;
+  if (props.message.sentStatus === MessageSentStatus.FAILED) {
+    status = 'error-outline';
+  } else if (props.message.sentStatus === MessageSentStatus.SENDING) {
+    status = 'query-builder';
+  } else if (props.message.editedAt) {
+    status = 'edit';
+  }
+  if (status) {
+    return (
+      <View
+        style={{
+          height: 10,
+          width: 15,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-end',
+          marginLeft: 10,
+        }}>
+        <Icon name={status} size={10} />
+      </View>
+    );
+  }
+  return null;
 };
 
 const styles = StyleSheet.create({

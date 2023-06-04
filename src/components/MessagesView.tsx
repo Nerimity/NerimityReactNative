@@ -1,7 +1,7 @@
 import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
-import {View, StyleSheet, Text, FlatList, TextInput} from 'react-native';
+import {View, StyleSheet, FlatList, TextInput} from 'react-native';
 import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
