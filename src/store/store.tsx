@@ -3,13 +3,16 @@ import {Socket} from './Socket';
 import {Servers} from './servers';
 import {Channels} from './channels';
 import {Messages} from './messages';
+import {Account} from './account';
 
 export class Store {
   socket: Socket;
   servers: Servers;
   channels: Channels;
   messages: Messages;
+  account: Account;
   constructor() {
+    this.account = new Account(this);
     this.messages = new Messages(this);
     this.channels = new Channels(this);
     this.servers = new Servers(this);

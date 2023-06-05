@@ -1,11 +1,20 @@
 import React from 'react';
-import {Pressable, View, StyleSheet, GestureResponderEvent} from 'react-native';
+import {
+  Pressable,
+  View,
+  StyleSheet,
+  GestureResponderEvent,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
+import Colors from './Colors';
 
 interface CustomPressable {
   selected?: boolean;
   onPress?: ((event: GestureResponderEvent) => void) | null;
   children: JSX.Element;
   radius?: number;
+  styles?: StyleProp<ViewStyle>;
 }
 export default function CustomPressable(props: CustomPressable) {
   return (
@@ -13,6 +22,7 @@ export default function CustomPressable(props: CustomPressable) {
       style={[
         styles.pressableContainer,
         props.radius ? {borderRadius: props.radius} : undefined,
+        props.styles,
       ]}>
       <Pressable
         style={styles.pressable}
@@ -41,6 +51,6 @@ const styles = StyleSheet.create({
     left: 0,
     borderRadius: 8,
     width: 3,
-    backgroundColor: '#77a8f3',
+    backgroundColor: Colors.primaryColor,
   },
 });

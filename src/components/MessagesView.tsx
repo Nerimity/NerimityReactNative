@@ -9,6 +9,7 @@ import MessageItem from './MessageItem';
 
 import CustomButton from './ui/CustomButton';
 import Header from './ui/Header';
+import Colors from './ui/Colors';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -38,17 +39,13 @@ const MessageList = observer(() => {
   const messages = useChannelMessages();
 
   return (
-    <>
-      {messages && (
-        <FlatList
-          data={messages.slice()}
-          keyExtractor={item => item.id}
-          renderItem={props => <MessageItem {...props} />}
-          inverted
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </>
+    <FlatList
+      data={(messages || []).slice()}
+      keyExtractor={item => item.id}
+      renderItem={props => <MessageItem {...props} />}
+      inverted
+      showsVerticalScrollIndicator={false}
+    />
   );
 });
 
@@ -65,6 +62,9 @@ const CustomInput = () => {
   const {messages} = useStore();
   const [message, setMessage] = useState('');
   const onSend = useCallback(() => {
+    if (!message.trim().length) {
+      return;
+    }
     messages.postMessage(route.params.channelId, message);
     setMessage('');
   }, [message, messages, route.params.channelId]);
@@ -78,7 +78,11 @@ const CustomInput = () => {
         onChangeText={text => setMessage(text)}
         defaultValue={message}
       />
-      <CustomButton title="Send" onPress={onSend} />
+      <CustomButton
+        icon="send"
+        onPress={onSend}
+        styles={{paddingLeft: 20, paddingRight: 20}}
+      />
     </View>
   );
 };
@@ -93,7 +97,7 @@ const PageHeader = () => {
 
 const styles = StyleSheet.create({
   pageContainer: {
-    backgroundColor: '#232629',
+    backgroundColor: Colors.paneColor,
     flexDirection: 'column',
     height: '100%',
   },
@@ -105,9 +109,10 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    borderBottomColor: '#77a8f3',
+    borderBottomColor: Colors.primaryColor,
     borderBottomWidth: 2,
     paddingLeft: 10,
+    alignItems: 'flex-end',
   },
   customInput: {
     flex: 1,

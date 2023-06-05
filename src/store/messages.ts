@@ -34,6 +34,7 @@ export class Messages {
   }
 
   async postMessage(channelId: string, content: string) {
+    const self = this.store.account.user!;
     const localMessage = this.addMessage(channelId, {
       id: `${Date.now()}-${Math.random()}`,
       channelId,
@@ -44,11 +45,12 @@ export class Messages {
       reactions: [],
       quotedMessages: [],
       createdBy: {
-        id: '1234',
-        username: 'Temp',
-        tag: 'TEMP',
-        badges: 0,
-        hexColor: '#ffff',
+        id: self.id,
+        username: self.username,
+        tag: self.tag,
+        badges: self.badges,
+        hexColor: self.hexColor,
+        avatar: self.avatar,
       },
     });
 
@@ -77,6 +79,13 @@ export class Messages {
       this.cache[channelId][index],
       message,
     );
+  }
+  deleteMessage(channelId: string, messageId: string) {
+    const index = this.cache[channelId]?.findIndex?.(m => m.id === messageId);
+    if (index === undefined || index < 0) {
+      return;
+    }
+    this.cache[channelId].splice(index, 1);
   }
 
   get channelMessages() {

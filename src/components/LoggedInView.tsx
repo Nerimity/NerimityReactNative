@@ -15,11 +15,12 @@ import CustomPressable from './ui/CustomPressable';
 import Avatar from './ui/Avatar';
 import {RootStackParamList} from '../../App';
 import Header from './ui/Header';
+import Colors from './ui/Colors';
 
 // type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 const styles = StyleSheet.create({
   pageContainer: {
-    backgroundColor: '#131416',
+    backgroundColor: Colors.backgroundColor,
     flexDirection: 'row',
   },
   serverListContainer: {height: '100%', marginLeft: 5, marginRight: 5},
