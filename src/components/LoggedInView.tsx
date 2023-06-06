@@ -114,7 +114,7 @@ const ServerList = observer(() => {
     <ScrollView
       showsVerticalScrollIndicator={false}
       style={styles.serverListContainer}>
-      {servers.array.map(server => (
+      {servers.orderedArray.map(server => (
         <ServerItem server={server} key={server.id} />
       ))}
     </ScrollView>
@@ -140,7 +140,7 @@ const ServerItem = (props: {server: Server}) => {
         startTransition(() => nav.navigate('Main', {serverId: props.server.id}))
       }>
       <View style={styles.serverItemContainer}>
-        <Avatar size={50} server={props.server} />
+        <Avatar animate={selected} size={50} server={props.server} />
       </View>
     </CustomPressable>
   );

@@ -16,6 +16,28 @@ export class Servers {
   get array() {
     return Object.values(this.cache);
   }
+
+  get orderedArray() {
+    const serverIdsArray = this.store.account.user?.orderedServerIds;
+    const order: Record<string, number> = {};
+    serverIdsArray?.forEach((a, i) => {
+      order[a] = i;
+    });
+
+    return this.array
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .sort((a, b) => {
+        const orderA = order[a.id];
+        const orderB = order[b.id];
+        if (orderA === undefined) {
+          return -1;
+        }
+        if (orderB === undefined) {
+          return 1;
+        }
+        return orderA - orderB;
+      });
+  }
 }
 
 export class Server {
@@ -25,6 +47,7 @@ export class Server {
   hexColor: string;
   createdById: string;
   defaultRoleId: string;
+  createdAt: number;
   store: Store;
   constructor(store: Store, server: RawServer) {
     makeAutoObservable(this, {id: false, store: false});
@@ -35,6 +58,7 @@ export class Server {
     this.hexColor = server.hexColor;
     this.createdById = server.createdById;
     this.defaultRoleId = server.defaultRoleId;
+    this.createdAt = server.createdAt;
   }
 
   get hasNotifications() {

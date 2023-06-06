@@ -7,39 +7,43 @@ import {useStore} from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
-export default function MessageItem(props: {item: RawMessage; index: number}) {
-  const {messages} = useStore();
-  const channelMessages = messages.cache[props.item.channelId];
+export default React.memo(
+  function MessageItem(props: {item: RawMessage; index: number}) {
+    const {messages} = useStore();
+    const channelMessages = messages.cache[props.item.channelId];
 
-  const beforeMessage = channelMessages[props.index + 1];
+    const beforeMessage = channelMessages[props.index + 1];
 
-  const currentTime = props.item.createdAt;
-  const beforeMessageTime = beforeMessage?.createdAt!;
+    const currentTime = props.item.createdAt;
+    const beforeMessageTime = beforeMessage?.createdAt!;
 
-  const isSameCreator =
-    beforeMessage && beforeMessage?.createdBy?.id === props.item?.createdBy?.id;
-  const isDateUnderFiveMinutes =
-    beforeMessageTime && currentTime - beforeMessageTime < 300000;
-  const isBeforeMessageContent =
-    beforeMessage && beforeMessage.type === MessageType.CONTENT;
+    const isSameCreator =
+      beforeMessage &&
+      beforeMessage?.createdBy?.id === props.item?.createdBy?.id;
+    const isDateUnderFiveMinutes =
+      beforeMessageTime && currentTime - beforeMessageTime < 300000;
+    const isBeforeMessageContent =
+      beforeMessage && beforeMessage.type === MessageType.CONTENT;
 
-  const isCompact =
-    isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
+    const isCompact =
+      isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
 
-  return (
-    <View
-      style={[
-        styles.messageItemContainer,
-        isCompact ? styles.compactMessageItemContainer : undefined,
-      ]}>
-      {!isCompact && <Avatar size={40} user={props.item.createdBy} />}
-      <View style={styles.messageInnerContainer}>
-        {!isCompact && <Details message={props.item} />}
-        <Content message={props.item} />
+    return (
+      <View
+        style={[
+          styles.messageItemContainer,
+          isCompact ? styles.compactMessageItemContainer : undefined,
+        ]}>
+        {!isCompact && <Avatar size={40} user={props.item.createdBy} />}
+        <View style={styles.messageInnerContainer}>
+          {!isCompact && <Details message={props.item} />}
+          <Content message={props.item} />
+        </View>
       </View>
-    </View>
-  );
-}
+    );
+  },
+  (p, n) => p.item === n.item,
+);
 
 const Details = (props: {message: RawMessage}) => {
   const createdBy = props.message.createdBy;

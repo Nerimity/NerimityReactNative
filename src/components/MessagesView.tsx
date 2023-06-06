@@ -1,7 +1,7 @@
 import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useState} from 'react';
 
-import {View, StyleSheet, FlatList, TextInput} from 'react-native';
+import {View, StyleSheet, TextInput} from 'react-native';
 import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
@@ -10,6 +10,7 @@ import MessageItem from './MessageItem';
 import CustomButton from './ui/CustomButton';
 import Header from './ui/Header';
 import Colors from './ui/Colors';
+import {FlashList} from '@shopify/flash-list';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -39,12 +40,15 @@ const MessageList = observer(() => {
   const messages = useChannelMessages();
 
   return (
-    <FlatList
+    <FlashList
       data={(messages || []).slice()}
-      keyExtractor={item => item.id}
-      renderItem={props => <MessageItem {...props} />}
+      estimatedItemSize={53}
       inverted
       showsVerticalScrollIndicator={false}
+      keyExtractor={item => item.id}
+      renderItem={props => {
+        return <MessageItem item={props.item} index={props.index} />;
+      }}
     />
   );
 });
@@ -62,11 +66,14 @@ const CustomInput = () => {
   const {messages} = useStore();
   const [message, setMessage] = useState('');
   const onSend = useCallback(() => {
-    if (!message.trim().length) {
-      return;
-    }
-    messages.postMessage(route.params.channelId, message);
-    setMessage('');
+    startTransition(() => {
+      const formattedMessage = message.trim();
+      setMessage('');
+      if (!formattedMessage.length) {
+        return;
+      }
+      messages.postMessage(route.params.channelId, formattedMessage);
+    });
   }, [message, messages, route.params.channelId]);
 
   return (

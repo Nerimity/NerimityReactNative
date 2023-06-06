@@ -8,8 +8,9 @@ interface AvatarProps {
   server?: {avatar?: string; hexColor: string};
   user?: {avatar?: string; hexColor: string};
   size: number;
+  animate?: boolean;
 }
-console.log(DefaultProfileUri);
+
 export default function Avatar(props: AvatarProps) {
   const serverOrUser = props.server || props.user;
 
@@ -19,8 +20,12 @@ export default function Avatar(props: AvatarProps) {
     width: props.size,
     height: props.size,
   };
+
+  const animate =
+    serverOrUser?.avatar?.endsWith('gif') && !props.animate ? '?type=webp' : '';
+
   const uri = serverOrUser?.avatar
-    ? `https://cdn.nerimity.com/${serverOrUser.avatar}`
+    ? `https://cdn.nerimity.com/${serverOrUser.avatar}${animate}`
     : DefaultProfileUri;
 
   return (
