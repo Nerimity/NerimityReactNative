@@ -1,9 +1,9 @@
-import React, {startTransition} from 'react';
+import React, {startTransition, useMemo} from 'react';
 import {observer} from 'mobx-react-lite';
 import {ScrollView, Text, View, StyleSheet} from 'react-native';
 import {useStore} from '../store/store';
 import {Server} from '../store/servers';
-//import {NativeStackScreenProps} from '@react-navigation/native-stack';
+
 import {
   NavigationProp,
   RouteProp,
@@ -84,10 +84,13 @@ const ServerChannelList = observer((props: {channels: Channel[]}) => {
   );
 });
 
-const ServerChannelItem = (props: {channel: Channel}) => {
+const ServerChannelItem = observer((props: {channel: Channel}) => {
   const nav = useNavigation<MainScreenNavigationProp>();
+
   return (
     <CustomPressable
+      selected={props.channel.hasNotifications}
+      handleColor={Colors.alertColor}
       onPress={() =>
         startTransition(() =>
           nav.navigate('Message', {
@@ -103,7 +106,7 @@ const ServerChannelItem = (props: {channel: Channel}) => {
       </View>
     </CustomPressable>
   );
-};
+});
 
 const ServerList = observer(() => {
   const {servers} = useStore();
@@ -124,9 +127,15 @@ const ServerItem = (props: {server: Server}) => {
 
   const selected = route.params?.serverId === props.server.id;
 
+  const hasNotification = useMemo(
+    () => props.server.hasNotifications,
+    [props.server.hasNotifications],
+  );
+
   return (
     <CustomPressable
-      selected={selected}
+      selected={selected || !!hasNotification}
+      handleColor={hasNotification ? Colors.alertColor : undefined}
       onPress={() =>
         startTransition(() => nav.navigate('Main', {serverId: props.server.id}))
       }>

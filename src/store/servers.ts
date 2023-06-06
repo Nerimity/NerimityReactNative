@@ -23,6 +23,8 @@ export class Server {
   name: string;
   avatar?: string;
   hexColor: string;
+  createdById: string;
+  defaultRoleId: string;
   store: Store;
   constructor(store: Store, server: RawServer) {
     makeAutoObservable(this, {id: false, store: false});
@@ -31,7 +33,16 @@ export class Server {
     this.name = server.name;
     this.avatar = server.avatar;
     this.hexColor = server.hexColor;
+    this.createdById = server.createdById;
+    this.defaultRoleId = server.defaultRoleId;
   }
+
+  get hasNotifications() {
+    return this.store.channels
+      .getChannelsByServerId(this.id)
+      .find(channel => channel.hasNotifications);
+  }
+
   get avatarUrl() {
     return `https://cdn.nerimity.com/${this.avatar}`;
   }
