@@ -1,13 +1,15 @@
 import React from 'react';
-import {View, StyleProp, ViewStyle, StyleSheet} from 'react-native';
+import {View, StyleProp, ViewStyle, StyleSheet, Image} from 'react-native';
 import FastImage from 'react-native-fast-image';
+import DefaultProfile from '../../assets/profile.png';
+const DefaultProfileUri = Image.resolveAssetSource(DefaultProfile).uri;
 
 interface AvatarProps {
   server?: {avatar?: string; hexColor: string};
   user?: {avatar?: string; hexColor: string};
   size: number;
 }
-
+console.log(DefaultProfileUri);
 export default function Avatar(props: AvatarProps) {
   const serverOrUser = props.server || props.user;
 
@@ -17,19 +19,20 @@ export default function Avatar(props: AvatarProps) {
     width: props.size,
     height: props.size,
   };
+  const uri = serverOrUser?.avatar
+    ? `https://cdn.nerimity.com/${serverOrUser.avatar}`
+    : DefaultProfileUri;
 
   return (
     <View style={[styles.avatarContainer, avatarStyles]}>
-      {!!serverOrUser?.avatar && (
-        <FastImage
-          style={{width: props.size, height: props.size}}
-          source={{
-            uri: `https://cdn.nerimity.com/${serverOrUser.avatar}`,
-            priority: FastImage.priority.normal,
-          }}
-          resizeMode="cover"
-        />
-      )}
+      <FastImage
+        style={{width: props.size, height: props.size}}
+        source={{
+          uri,
+          priority: FastImage.priority.normal,
+        }}
+        resizeMode="cover"
+      />
     </View>
   );
 }
