@@ -1,5 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import {RawUser} from './RawData';
+import {RawPresence, RawUser} from './RawData';
 import {Store} from './store';
 
 export enum UserStatus {
@@ -48,13 +48,22 @@ export class User {
   id: string;
   username: string;
   tag: string;
+  hexColor: string;
+  avatar?: string;
   store: Store;
+  presence?: Presence;
 
   constructor(store: Store, user: RawUser) {
     this.store = store;
     makeAutoObservable(this, {id: false, store: false});
     this.id = user.id;
     this.username = user.username;
+    this.hexColor = user.hexColor;
+    this.avatar = user.avatar;
     this.tag = user.tag;
+    this.presence = undefined;
+  }
+  updatePresence(presence: RawPresence) {
+    this.presence = presence;
   }
 }

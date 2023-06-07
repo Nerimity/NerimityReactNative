@@ -32,7 +32,7 @@ export class ServerMembers {
     this.cache[rawServerMember.serverId][rawServerMember.user.id] = user;
   }
   get array() {
-    return Object.values(this.cache);
+    return (serverId: string) => Object.values(this.cache[serverId] || {});
   }
   get get() {
     return (serverId: string, userId: string) =>
@@ -44,13 +44,24 @@ export class ServerMember {
   store: Store;
   serverId: string;
   roleIds: string[];
+  userId: string;
   constructor(store: Store, serverMember: RawServerMember) {
     this.store = store;
     this.store.users.addCache(serverMember.user);
-    makeAutoObservable(this, {store: false, serverId: false});
+    makeAutoObservable(this, {store: false, serverId: false, userId: false});
+    this.userId = serverMember.user.id;
     this.serverId = serverMember.serverId;
     this.roleIds = serverMember.roleIds;
   }
+  get user() {
+    return this.store.users.get(this.userId)!;
+  }
+
+  unhiddenRole = computedFn(function unhiddenRole(this: ServerMember) {
+    const sortedRoles = this.roles().sort((a, b) => b?.order! - a?.order!);
+    return sortedRoles.find(role => !role?.hideRole);
+  });
+
   roles = computedFn(function roles(this: ServerMember) {
     return this.roleIds.map(id => {
       return this.store.serverRoles.get(this.serverId, id);

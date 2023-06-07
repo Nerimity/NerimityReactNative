@@ -108,7 +108,7 @@ export class Channel {
     );
   }
 
-  hasNotifications = computedFn(function permissions(this: Channel) {
+  hasNotifications = computedFn(function hasNotifications(this: Channel) {
     if (![ChannelType.DM_TEXT, ChannelType.SERVER_TEXT].includes(this.type)) {
       return false;
     }

@@ -1,4 +1,9 @@
-import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, {startTransition, useCallback, useEffect, useState} from 'react';
 
 import {View, StyleSheet, TextInput} from 'react-native';
@@ -11,6 +16,7 @@ import CustomButton from './ui/CustomButton';
 import Header from './ui/Header';
 import Colors from './ui/Colors';
 import {FlashList} from '@shopify/flash-list';
+import {ChannelDetailsScreenNavigationProp} from './ChannelDetailsView';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -96,10 +102,21 @@ const CustomInput = () => {
 
 const PageHeader = () => {
   const route = useRoute<MainScreenRouteProp>();
+  const nav = useNavigation<ChannelDetailsScreenNavigationProp>();
   const {channels} = useStore();
 
   const channel = channels.cache[route.params.channelId];
-  return <Header title={channel?.name || '...'} />;
+  return (
+    <Header
+      title={channel?.name || '...'}
+      onPress={() =>
+        nav.navigate('ChannelDetails', {
+          channelId: channel.id,
+          serverId: channel.serverId,
+        })
+      }
+    />
+  );
 };
 
 const styles = StyleSheet.create({

@@ -1,13 +1,16 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {GestureResponderEvent, Pressable, StyleSheet, Text} from 'react-native';
 
-export default function Header(props: {title: string}) {
+export default function Header(props: {
+  title: string;
+  onPress?(event: GestureResponderEvent): void;
+}) {
   return (
-    <View style={styles.header}>
+    <Pressable style={styles.header} onPress={props.onPress}>
       <Text numberOfLines={1} style={styles.headerText}>
         {props.title}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 

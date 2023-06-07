@@ -22,18 +22,31 @@ export class ServerRoles {
   get array() {
     return Object.values(this.cache);
   }
+
+  get sortedRolesArray() {
+    return (serverId: string) =>
+      Object.values(this.cache[serverId] || {}).sort(
+        (a, b) => b!.order - a!.order,
+      );
+  }
 }
 
 export class ServerRole {
   store: Store;
   id: string;
   name: string;
+  hexColor: string;
+  order: number;
   permissions: number;
+  hideRole: boolean;
   constructor(store: Store, role: RawServerRole) {
     makeAutoObservable(this, {id: false, store: false});
     this.store = store;
     this.id = role.id;
     this.name = role.name;
     this.permissions = role.permissions;
+    this.order = role.order;
+    this.hideRole = role.hideRole;
+    this.hexColor = role.hexColor;
   }
 }

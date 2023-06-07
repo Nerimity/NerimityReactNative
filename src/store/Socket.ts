@@ -91,16 +91,20 @@ export class Socket {
         const serverMember = payload.serverMembers[i];
         this.store.serverMembers.addCache(serverMember);
       }
+      for (let i = 0; i < payload.presences.length; i++) {
+        const presence = payload.presences[i];
+        this.store.users.get(presence.userId)?.updatePresence(presence);
+      }
 
       for (let i = 0; i < payload.messageMentions.length; i++) {
         const mention = payload.messageMentions[i];
         const channel = this.store.channels.get(mention.channelId);
         if (!channel) {
-          return;
+          continue;
         }
         if (!mention.serverId) {
           // TODO: handle this later PLSS
-          return;
+          continue;
         }
         this.store.mentions.set(mention.channelId, {
           channelId: mention.channelId,

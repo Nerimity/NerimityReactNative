@@ -1,6 +1,7 @@
 import {makeAutoObservable} from 'mobx';
 import {RawServer} from './RawData';
 import {Store} from './store';
+import {computedFn} from 'mobx-utils';
 
 export class Servers {
   cache: Record<string, Server> = {};
@@ -15,6 +16,10 @@ export class Servers {
   }
   get array() {
     return Object.values(this.cache);
+  }
+
+  get get() {
+    return (serverId: string) => this.cache[serverId] as Server | undefined;
   }
 
   get orderedArray() {
@@ -70,4 +75,31 @@ export class Server {
   get avatarUrl() {
     return `https://cdn.nerimity.com/${this.avatar}`;
   }
+
+  getRolesWithMembers = computedFn(function getRolesWithMembers(this: Server) {
+    const members = this.store.serverMembers.array(this.id);
+    return this.store.serverRoles.sortedRolesArray(this.id).map(role => {
+      const membersInThisRole = members.filter(member => {
+        if (!member?.user.presence?.status) {
+          return false;
+        }
+        if (this.defaultRoleId === role!.id && !member?.unhiddenRole()) {
+          return true;
+        }
+        if (member?.unhiddenRole()?.id === role!.id) {
+          return true;
+        }
+      });
+      return {role, members: membersInThisRole};
+    });
+  });
+
+  get defaultRole() {
+    return this.store.serverRoles.get(this.id, this.defaultRoleId)!;
+  }
+
+  getOfflineMembers = computedFn(function getOfflineMembers(this: Server) {
+    const members = this.store.serverMembers.array(this.id);
+    return members.filter(member => !member?.user.presence?.status);
+  });
 }
