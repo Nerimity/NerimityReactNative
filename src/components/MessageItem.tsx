@@ -61,12 +61,12 @@ const Content = observer((props: {message: RawMessage}) => {
     <View>
       <Text>
         {props.message.content}
-        <SentStatus message={props.message} />
+        <MessageStatus message={props.message} />
       </Text>
     </View>
   );
 });
-const SentStatus = (props: {message: Message}) => {
+const MessageStatus = (props: {message: Message}) => {
   let status: string | null = null;
   if (props.message.sentStatus === MessageSentStatus.FAILED) {
     status = 'error-outline';
@@ -77,14 +77,7 @@ const SentStatus = (props: {message: Message}) => {
   }
   if (status) {
     return (
-      <View
-        style={{
-          height: 10,
-          width: 15,
-          justifyContent: 'flex-end',
-          alignItems: 'flex-end',
-          marginLeft: 10,
-        }}>
+      <View style={styles.messageStatus}>
         <Icon name={status} size={10} />
       </View>
     );
@@ -94,8 +87,8 @@ const SentStatus = (props: {message: Message}) => {
 
 const styles = StyleSheet.create({
   messageItemContainer: {
-    paddingLeft: 5,
-    paddingRight: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
     paddingTop: 10,
     paddingBottom: 3,
     gap: 5,
@@ -110,4 +103,11 @@ const styles = StyleSheet.create({
   messageInnerContainer: {flex: 1, flexWrap: 'wrap'},
   detailsContainer: {flexDirection: 'row', gap: 5, alignItems: 'center'},
   timestamp: {fontSize: 12, opacity: 0.6},
+  messageStatus: {
+    height: 10,
+    width: 15,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    marginLeft: 10,
+  },
 });
