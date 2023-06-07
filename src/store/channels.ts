@@ -44,6 +44,20 @@ export class Channels {
     };
   }
 
+  get getSortedChannelsByServerId() {
+    return (serverId: string, hidePrivateIfNoPerm = false) => {
+      return this.getChannelsByServerId(serverId, hidePrivateIfNoPerm).sort(
+        (a, b) => {
+          if (a!.order && b!.order) {
+            return a!.order - b!.order;
+          } else {
+            return a!.createdAt - b!.createdAt;
+          }
+        },
+      );
+    };
+  }
+
   get array() {
     return Object.values(this.cache);
   }
@@ -58,17 +72,23 @@ export class Channel {
   serverId?: string;
   permissions?: number;
   lastMessagedAt?: number;
+  createdAt: number;
   lastSeen?: number;
+  order?: number;
   store: Store;
   type: ChannelType;
+  categoryId?: string;
 
   constructor(store: Store, channel: RawChannel) {
     this.store = store;
     this.name = channel.name;
     this.permissions = channel.permissions;
     this.lastMessagedAt = channel.lastMessagedAt;
+    this.createdAt = channel.createdAt;
     this.type = channel.type;
     this.lastSeen = undefined;
+    this.order = channel.order;
+    this.categoryId = channel.categoryId;
     makeAutoObservable(this, {id: false, serverId: false, store: false});
     this.id = channel.id;
     this.serverId = channel.serverId;

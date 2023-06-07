@@ -70,9 +70,4 @@ export class Server {
   get avatarUrl() {
     return `https://cdn.nerimity.com/${this.avatar}`;
   }
-  get channels() {
-    return this.store.channels.array.filter(
-      channel => channel.serverId === this.id,
-    );
-  }
 }
