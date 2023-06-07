@@ -64,7 +64,7 @@ export class Server {
   get hasNotifications() {
     return this.store.channels
       .getChannelsByServerId(this.id)
-      .find(channel => channel.hasNotifications);
+      .find(channel => channel.hasNotifications());
   }
 
   get avatarUrl() {

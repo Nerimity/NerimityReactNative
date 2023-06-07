@@ -56,6 +56,11 @@ export class Socket {
     this.io.on(ServerEvents.MESSAGE_CREATED, this.onMessageCreated.bind(this));
     this.io.on(ServerEvents.MESSAGE_UPDATED, this.onMessageUpdated.bind(this));
     this.io.on(ServerEvents.MESSAGE_DELETED, this.onMessageDeleted.bind(this));
+
+    this.io.on(
+      ServerEvents.NOTIFICATION_DISMISSED,
+      this.onNotificationDismissed.bind(this),
+    );
   }
   onConnect() {
     console.log('Authenticating...');
@@ -150,5 +155,12 @@ export class Socket {
   }
   onMessageDeleted(payload: {channelId: string; messageId: string}) {
     this.store.messages.deleteMessage(payload.channelId, payload.messageId);
+  }
+  onNotificationDismissed(payload: {channelId: string}) {
+    const channel = this.store.channels.get(payload.channelId);
+    transaction(() => {
+      channel?.updateLastSeen((channel.lastMessagedAt || Date.now()) + 1);
+      this.store.mentions.remove(payload.channelId);
+    });
   }
 }

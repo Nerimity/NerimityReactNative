@@ -2,6 +2,7 @@ import {makeAutoObservable} from 'mobx';
 import {ChannelType, RawChannel} from './RawData';
 import {Store} from './store';
 import {CHANNEL_PERMISSIONS, ROLE_PERMISSIONS, hasBit} from '../utils/bitwise';
+import {computedFn} from 'mobx-utils';
 
 export class Channels {
   cache: Record<string, Channel> = {};
@@ -67,6 +68,7 @@ export class Channel {
     this.permissions = channel.permissions;
     this.lastMessagedAt = channel.lastMessagedAt;
     this.type = channel.type;
+    this.lastSeen = undefined;
     makeAutoObservable(this, {id: false, serverId: false, store: false});
     this.id = channel.id;
     this.serverId = channel.serverId;
@@ -86,7 +88,7 @@ export class Channel {
     );
   }
 
-  get hasNotifications() {
+  hasNotifications = computedFn(function permissions(this: Channel) {
     if (![ChannelType.DM_TEXT, ChannelType.SERVER_TEXT].includes(this.type)) {
       return false;
     }
@@ -112,5 +114,5 @@ export class Channel {
       return true;
     }
     return lastMessagedAt > lastSeenAt;
-  }
+  });
 }

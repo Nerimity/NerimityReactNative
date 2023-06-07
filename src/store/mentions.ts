@@ -1,4 +1,4 @@
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, remove as removeItem} from 'mobx';
 import {Store} from './store';
 
 export type Mention = {
@@ -18,6 +18,9 @@ export class Mentions {
 
   set(channelId: string, mention: Mention) {
     this.cache[channelId] = mention;
+  }
+  remove(channelId: string) {
+    removeItem(this.cache, channelId);
   }
   get get() {
     return (channelId: string) => this.cache[channelId] as Mention | undefined;
