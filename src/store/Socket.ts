@@ -2,7 +2,6 @@ import io, {Socket as IOSocket} from 'socket.io-client';
 import {Store} from './store';
 import {ClientEvents, ServerEvents} from './EventNames';
 import {transaction} from 'mobx';
-import config from '../../config';
 import {
   RawChannel,
   RawFriend,
@@ -44,7 +43,10 @@ export class Socket {
   constructor(store: Store) {
     this.store = store;
     console.log('Connecting...');
-    this.io = io('https://nerimity.com', {transports: ['websocket']});
+    this.io = io('https://nerimity.com', {
+      transports: ['websocket'],
+      autoConnect: false,
+    });
 
     // register events
     this.io.on(ServerEvents.CONNECT, this.onConnect.bind(this));
@@ -62,9 +64,16 @@ export class Socket {
       this.onNotificationDismissed.bind(this),
     );
   }
+
+  connect() {
+    if (!this.io.connected) {
+      this.io.connect();
+    }
+  }
+
   onConnect() {
     console.log('Authenticating...');
-    this.io.emit(ClientEvents.AUTHENTICATE, {token: config.token});
+    this.io.emit(ClientEvents.AUTHENTICATE, {token: this.store.account.token});
   }
   onAuthenticated(payload: AuthenticatedPayload) {
     console.log('Authenticated!');

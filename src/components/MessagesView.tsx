@@ -44,6 +44,7 @@ export default function MessagesView() {
 
 const MessageList = observer(() => {
   const messages = useChannelMessages();
+  const route = useRoute<MainScreenRouteProp>();
 
   return (
     <FlashList
@@ -53,7 +54,13 @@ const MessageList = observer(() => {
       showsVerticalScrollIndicator={false}
       keyExtractor={item => item.id}
       renderItem={props => {
-        return <MessageItem item={props.item} index={props.index} />;
+        return (
+          <MessageItem
+            item={props.item}
+            index={props.index}
+            serverId={route.params.serverId}
+          />
+        );
       }}
     />
   );

@@ -62,6 +62,20 @@ export class ServerMember {
     return sortedRoles.find(role => !role?.hideRole);
   });
 
+  topRole = computedFn(function topRole(this: ServerMember) {
+    const sortedRoles = () =>
+      this.roles().sort((a, b) => b?.order! - a?.order!);
+    const defaultRoleId = () =>
+      this.store.servers.get(this.serverId)?.defaultRoleId;
+    const defaultRole = () =>
+      this.store.serverRoles.get(this.serverId, defaultRoleId()!);
+    return sortedRoles()[0] || defaultRole();
+  });
+
+  get roleColor() {
+    return this.topRole().hexColor;
+  }
+
   roles = computedFn(function roles(this: ServerMember) {
     return this.roleIds.map(id => {
       return this.store.serverRoles.get(this.serverId, id);

@@ -33,9 +33,9 @@ export class Store {
 }
 
 const StoreContext = React.createContext<Store>({} as Store);
+export const store = new Store();
 
 export const StoreProvider = ({children}: {children: React.ReactElement}) => {
-  const store = new Store();
   return (
     <StoreContext.Provider value={store}>{children}</StoreContext.Provider>
   );

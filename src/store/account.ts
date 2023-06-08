@@ -1,5 +1,6 @@
 import {makeAutoObservable} from 'mobx';
 import {Store} from './store';
+import {getUserToken} from '../utils/EncryptedStore';
 
 export interface SelfUser {
   id: string;
@@ -16,9 +17,15 @@ export interface SelfUser {
 export class Account {
   user: SelfUser | null = null;
   store: Store;
+  token?: string | null;
   constructor(store: Store) {
     this.store = store;
+    this.token = undefined;
     makeAutoObservable(this, {store: false});
+    getUserToken().then(token => this.setToken(token));
+  }
+  setToken(token: string | null) {
+    this.token = token;
   }
   addSelfUser(newUser: SelfUser) {
     this.user = newUser;

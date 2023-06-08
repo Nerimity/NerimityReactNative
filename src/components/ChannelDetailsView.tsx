@@ -10,6 +10,7 @@ import Colors from './ui/Colors';
 import {ServerMember} from '../store/serverMembers';
 import {ServerRole} from '../store/serverRoles';
 import Avatar from './ui/Avatar';
+import {observer} from 'mobx-react-lite';
 
 export type ChannelDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -36,7 +37,7 @@ const PageHeader = () => {
   return <Header title={memberCount + ' members'} />;
 };
 
-const ServerMemberList = () => {
+const ServerMemberList = observer(() => {
   const route = useRoute<ChannelDetailsScreenRouteProp>();
   const {servers} = useStore();
 
@@ -45,7 +46,7 @@ const ServerMemberList = () => {
   const roles = server?.getRolesWithMembers();
 
   return (
-    <ScrollView>
+    <ScrollView style={styles.memberListContainer}>
       {roles &&
         roles.map(item =>
           !item.role.hideRole && item.members.length ? (
@@ -64,7 +65,7 @@ const ServerMemberList = () => {
       )}
     </ScrollView>
   );
-};
+});
 
 const RoleItem = (props: {role: ServerRole; members: ServerMember[]}) => {
   return (
@@ -82,7 +83,7 @@ const MemberItem = (props: {member: ServerMember; role: ServerRole}) => {
   return (
     <View style={styles.memberItemContainer}>
       <Avatar size={40} user={props.member.user} />
-      <Text style={{color: props.role.hexColor}}>
+      <Text numberOfLines={1} style={{color: props.role.hexColor, flex: 1}}>
         {props.member.user.username}
       </Text>
     </View>
@@ -95,6 +96,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     height: '100%',
   },
+  memberListContainer: {
+    padding: 10,
+  },
   roleContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     padding: 5,
@@ -106,6 +110,7 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
   },
   memberItemContainer: {
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,

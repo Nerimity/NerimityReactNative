@@ -28,10 +28,10 @@ export default function CustomButton(props: CustomButtonProps) {
             styles.buttonInnerContainer,
             props.styles,
           ]}>
-          {props.title && <Text style={styles.text}>{props.title}</Text>}
           {props.icon && (
             <Icon color={Colors.primaryColor} name={props.icon} size={20} />
           )}
+          {props.title && <Text style={styles.text}>{props.title}</Text>}
         </View>
       </CustomPressable>
     </View>
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   buttonInnerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
   },
   pressableStyles: {
     backgroundColor: 'rgba(255,255,255,0.01)',

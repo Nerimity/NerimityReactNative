@@ -7,8 +7,15 @@ import {useStore} from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
+
+interface MessageItemProps {
+  item: RawMessage;
+  index: number;
+  serverId?: string;
+}
+
 export default React.memo(
-  function MessageItem(props: {item: RawMessage; index: number}) {
+  function MessageItem(props: MessageItemProps) {
     const {messages} = useStore();
     const channelMessages = messages.cache[props.item.channelId];
 
@@ -36,7 +43,7 @@ export default React.memo(
         ]}>
         {!isCompact && <Avatar size={40} user={props.item.createdBy} />}
         <View style={styles.messageInnerContainer}>
-          {!isCompact && <Details message={props.item} />}
+          {!isCompact && <Details {...props} />}
           <Content message={props.item} />
         </View>
       </View>
@@ -45,16 +52,22 @@ export default React.memo(
   (p, n) => p.item === n.item,
 );
 
-const Details = (props: {message: RawMessage}) => {
-  const createdBy = props.message.createdBy;
-  const timestamp = formatTimestamp(props.message.createdAt);
+const Details = observer((props: MessageItemProps) => {
+  const {serverMembers} = useStore();
+  const createdBy = props.item.createdBy;
+  const timestamp = formatTimestamp(props.item.createdAt);
+
+  const roleColor = props.serverId
+    ? serverMembers.get(props.serverId, createdBy.id)?.roleColor
+    : undefined;
+
   return (
     <View style={styles.detailsContainer}>
-      <Text>{createdBy.username}</Text>
+      <Text style={{color: roleColor}}>{createdBy.username}</Text>
       <Text style={styles.timestamp}>{timestamp}</Text>
     </View>
   );
-};
+});
 
 const Content = observer((props: {message: RawMessage}) => {
   return (

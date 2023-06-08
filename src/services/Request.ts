@@ -1,4 +1,4 @@
-import config from '../../config';
+import {store} from '../store/store';
 
 interface RequestOpts {
   url: string;
@@ -10,7 +10,7 @@ interface RequestOpts {
 }
 
 export async function request<T>(opts: RequestOpts): Promise<T> {
-  const token = config.token;
+  const token = store.account.token!;
   const url = new URL(opts.url);
   url.search = new URLSearchParams(opts.params || {}).toString();
 
