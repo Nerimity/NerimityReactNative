@@ -98,11 +98,7 @@ const CustomInput = () => {
         onChangeText={text => setMessage(text)}
         defaultValue={message}
       />
-      <CustomButton
-        icon="send"
-        onPress={onSend}
-        styles={{paddingLeft: 20, paddingRight: 20}}
-      />
+      <CustomButton icon="send" onPress={onSend} styles={styles.sendButton} />
     </View>
   );
 };
@@ -147,5 +143,9 @@ const styles = StyleSheet.create({
   },
   customInput: {
     flex: 1,
+  },
+  sendButton: {
+    paddingLeft: 20,
+    paddingRight: 20,
   },
 });

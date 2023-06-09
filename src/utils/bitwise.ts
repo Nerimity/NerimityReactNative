@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 export interface Bitwise {
   name: string;
   description?: string;

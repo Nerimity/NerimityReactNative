@@ -83,7 +83,9 @@ const MemberItem = (props: {member: ServerMember; role: ServerRole}) => {
   return (
     <View style={styles.memberItemContainer}>
       <Avatar size={40} user={props.member.user} />
-      <Text numberOfLines={1} style={{color: props.role.hexColor, flex: 1}}>
+      <Text
+        numberOfLines={1}
+        style={[styles.memberUsername, {color: props.role.hexColor}]}>
         {props.member.user.username}
       </Text>
     </View>
@@ -115,5 +117,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     padding: 5,
+  },
+  memberUsername: {
+    flex: 1,
   },
 });

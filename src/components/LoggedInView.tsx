@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
   serverItemContainer: {
     margin: 10,
   },
+  serverChannelName: {
+    color: 'rgb(255,255,255)',
+  },
 });
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Main'>;
@@ -161,7 +164,7 @@ const ServerChannelItem = observer((props: {channel: Channel}) => {
       }>
       <View style={styles.serverChannelItem}>
         <Text style={styles.hashIcon}>#</Text>
-        <Text numberOfLines={1} style={{color: 'rgb(255,255,255)'}}>
+        <Text numberOfLines={1} style={styles.serverChannelName}>
           {props.channel.name}
         </Text>
       </View>
