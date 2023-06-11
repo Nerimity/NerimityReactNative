@@ -1,4 +1,4 @@
-import React, {FunctionComponent, createElement, useEffect, useId} from 'react';
+import React, {createElement} from 'react';
 import {Message} from '../store/messages';
 import {Text, StyleSheet, View, Linking} from 'react-native';
 import {parseMarkup, addTextSpans, Entity, Span} from '@nerimity/nevula';
@@ -14,11 +14,8 @@ import {
   unicodeToTwemojiUrl,
 } from '../utils/emoji/emoji';
 
-import {SvgUri} from 'react-native-svg';
 import config from '../../config';
 import FastImage from 'react-native-fast-image';
-import {observable, runInAction} from 'mobx';
-import {observer} from 'mobx-react-lite';
 
 interface MarkupProps {
   text: string;
@@ -30,18 +27,9 @@ interface MarkupProps {
 
 type RenderContext = {
   props: MarkupProps;
-  id: string;
   textCount: number;
   emojiCount: number;
 };
-
-const state = observable<{largeEmoji: Record<string, boolean>}>({
-  largeEmoji: {},
-});
-
-// setInterval(() => {
-//   // counter.test["123"] = Math.random();
-// }, 1000)
 
 const transformEntities = (entity: Entity, ctx: RenderContext) =>
   entity.entities.map(e => transformEntity(e, ctx));
@@ -253,9 +241,8 @@ function QuoteMessage(props: {message: Message; quote: Partial<Message>}) {
   );
 }
 
-export default function Markup(props: MarkupProps) {
-  const id = useId();
-  const ctx = {props, emojiCount: 0, textCount: 0, id};
+const Markup = React.memo((props: MarkupProps) => {
+  const ctx = {props, emojiCount: 0, textCount: 0};
   const entity = addTextSpans(parseMarkup(ctx.props.text));
   const output = transformEntity(entity, ctx);
 
@@ -286,8 +273,11 @@ export default function Markup(props: MarkupProps) {
     return <View>{output}</View>;
   }
   el.props.children?.length && newOutput.push(el);
+
   return <View>{newOutput}</View>;
-}
+});
+
+export default Markup;
 
 const styles = StyleSheet.create({
   link: {

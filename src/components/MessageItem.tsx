@@ -1,6 +1,6 @@
 import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
-import {MessageType, RawMessage} from '../store/RawData';
+import {MessageType, RawAttachment, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
 import {useStore} from '../store/store';
@@ -8,6 +8,9 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
 import Markup from './Markup';
+import FastImage from 'react-native-fast-image';
+import config from '../../config';
+import {useWindowDimensions} from 'react-native';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -74,8 +77,9 @@ const Details = observer((props: MessageItemProps) => {
 
 const Content = observer((props: {message: RawMessage}) => {
   return (
-    <View>
+    <View style={{width: '100%'}}>
       <Markup text={props.message.content || ''} message={props.message} />
+      <Embeds message={props.message} />
       {/* <MessageStatus message={props.message} /> */}
     </View>
   );
@@ -98,6 +102,67 @@ const MessageStatus = (props: {message: Message}) => {
   }
   return null;
 };
+
+const Embeds = (props: {message: Message}) => {
+  return (
+    <>
+      {!!props.message?.attachments?.length && (
+        <ImageEmbed
+          attachment={props.message.attachments[0]}
+          widthOffset={-65}
+        />
+      )}
+    </>
+  );
+};
+const ImageEmbed = (props: {
+  attachment: RawAttachment;
+  widthOffset?: number;
+}) => {
+  const {width, height} = useWindowDimensions();
+
+  const maxWidth = clamp(width + (props.widthOffset || 0), 600);
+
+  const style = clampImageSize(
+    props.attachment.width!,
+    props.attachment.height!,
+    maxWidth,
+    height / 2,
+  );
+  console.log(style);
+  return (
+    <FastImage
+      style={[style, styles.imageEmbed]}
+      source={{
+        uri: config.nerimityCdnUrl + props.attachment.path,
+        priority: FastImage.priority.normal,
+      }}
+      resizeMode="contain"
+    />
+  );
+};
+
+export function clamp(num: number, max: number) {
+  return num >= max ? max : num;
+}
+
+function clampImageSize(
+  width: number,
+  height: number,
+  maxWidth: number,
+  maxHeight: number,
+) {
+  const aspectRatio = width / height;
+  if (width > maxWidth) {
+    width = maxWidth;
+    height = width / aspectRatio;
+  }
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = height * aspectRatio;
+  }
+  return {width: width, height: height};
+}
 
 const styles = StyleSheet.create({
   messageItemContainer: {
@@ -123,5 +188,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     marginLeft: 10,
+  },
+  imageEmbed: {
+    borderRadius: 8,
   },
 });
