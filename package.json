@@ -24,9 +24,11 @@
     "react-native-fast-image": "^8.6.3",
     "react-native-safe-area-context": "^4.5.3",
     "react-native-screens": "^3.20.0",
+    "react-native-svg": "^13.9.0",
     "react-native-vector-icons": "^9.2.0",
     "react-native-windows": "0.71.15",
-    "socket.io-client": "^4.6.2"
+    "socket.io-client": "^4.6.2",
+    "twemoji": "^14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

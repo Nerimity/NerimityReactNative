@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {MessageType, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
@@ -37,7 +37,9 @@ export default React.memo(
       isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
 
     return (
-      <View
+      <Pressable
+        unstable_pressDelay={100}
+        android_ripple={{color: 'gray'}}
         style={[
           styles.messageItemContainer,
           isCompact ? styles.compactMessageItemContainer : undefined,
@@ -47,7 +49,7 @@ export default React.memo(
           {!isCompact && <Details {...props} />}
           <Content message={props.item} />
         </View>
-      </View>
+      </Pressable>
     );
   },
   (p, n) => p.item === n.item,
@@ -73,10 +75,8 @@ const Details = observer((props: MessageItemProps) => {
 const Content = observer((props: {message: RawMessage}) => {
   return (
     <View>
-      <Text>
-        <Markup text={props.message.content || ''} message={props.message} />
-        <MessageStatus message={props.message} />
-      </Text>
+      <Markup text={props.message.content || ''} message={props.message} />
+      {/* <MessageStatus message={props.message} /> */}
     </View>
   );
 });
