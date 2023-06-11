@@ -129,7 +129,6 @@ const ImageEmbed = (props: {
     maxWidth,
     height / 2,
   );
-  console.log(style);
   return (
     <FastImage
       style={[style, styles.imageEmbed]}
