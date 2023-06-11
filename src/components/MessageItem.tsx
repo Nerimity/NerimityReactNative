@@ -7,6 +7,7 @@ import {useStore} from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
+import Markup from './Markup';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -73,7 +74,7 @@ const Content = observer((props: {message: RawMessage}) => {
   return (
     <View>
       <Text>
-        {props.message.content}
+        <Markup text={props.message.content || ''} message={props.message} />
         <MessageStatus message={props.message} />
       </Text>
     </View>
