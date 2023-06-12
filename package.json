@@ -11,7 +11,7 @@
     "windows": "react-native run-windows"
   },
   "dependencies": {
-    "@nerimity/nevula": "^0.12.1",
+    "@nerimity/nevula": "^0.12.3",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",
     "@shopify/flash-list": "^1.4.3",
