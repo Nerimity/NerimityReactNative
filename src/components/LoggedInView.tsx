@@ -18,7 +18,10 @@ import Header from './ui/Header';
 import Colors from './ui/Colors';
 import {ChannelType} from '../store/RawData';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {
+  BottomTabBarProps,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs';
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -104,12 +107,16 @@ export type LoggedInTabNavigationProp = NavigationProp<LoggedInTabParamList>;
 
 const Tab = createBottomTabNavigator<LoggedInTabParamList>();
 
-const TabBar = observer(() => {
+const TabBar = observer((props: BottomTabBarProps) => {
   const {account} = useStore();
+
+  const selectedIndex = props.state.index;
   return (
     <View style={styles.tabBarContainer}>
       <View style={styles.tabBarInnerContainer}>
-        <TabBarItem selected>
+        <TabBarItem
+          selected={selectedIndex === 0}
+          onPress={() => props.navigation.navigate('Home', {})}>
           <Icon name="all-inbox" size={25} />
         </TabBarItem>
         <TabBarItem>
@@ -122,10 +129,14 @@ const TabBar = observer(() => {
 
 const TabBarItem = (props: {
   children?: React.JSX.Element | null;
+  onPress?(): void;
   selected?: boolean;
 }) => {
   return (
-    <CustomPressable handlePosition="bottom" selected={props.selected}>
+    <CustomPressable
+      handlePosition="bottom"
+      selected={props.selected}
+      onPress={props.onPress}>
       <View style={styles.tabBarItemContainer}>{props.children}</View>
     </CustomPressable>
   );
@@ -134,7 +145,7 @@ const TabBarItem = (props: {
 export default function LoggedInView() {
   return (
     <Tab.Navigator
-      tabBar={() => <TabBar />}
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{headerShown: false}}>
       <Tab.Screen name="Home" component={ServerScreen} />
     </Tab.Navigator>
