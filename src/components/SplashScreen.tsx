@@ -4,8 +4,9 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import React, {useEffect} from 'react';
+import Logo from '../assets/logo.png';
 
-import {View, StyleSheet, Text} from 'react-native';
+import {View, StyleSheet, Text, Image} from 'react-native';
 import {RootStackParamList} from '../../App';
 
 import Colors from './ui/Colors';
@@ -19,19 +20,21 @@ const SplashScreen = observer(() => {
   const nav = useNavigation<MainNavigationProp>();
 
   useEffect(() => {
-    if (account.token === null) {
-      nav.dispatch(StackActions.replace('Login'));
-      return;
-    }
-    if (account.token) {
-      nav.dispatch(StackActions.replace('Main'));
-      socket.connect();
-    }
+    setTimeout(() => {
+      if (account.token === null) {
+        nav.dispatch(StackActions.replace('Login'));
+        return;
+      }
+      if (account.token) {
+        nav.dispatch(StackActions.replace('Main'));
+        socket.connect();
+      }
+    }, 300);
   }, [account.token, nav, socket]);
 
   return (
     <View style={styles.pageContainer}>
-      <Text style={styles.loadingText}>Very Cool Loading Screen...</Text>
+      <Image style={styles.logo} source={Image.resolveAssetSource(Logo)} />
     </View>
   );
 });
@@ -46,11 +49,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loadingText: {
-    color: Colors.primaryColor,
-    fontWeight: 'bold',
-    fontSize: 30,
-    textAlign: 'center',
-    margin: 10,
+
+  logo: {
+    height: 120,
+    width: 120,
+    borderRadius: 120,
   },
 });
