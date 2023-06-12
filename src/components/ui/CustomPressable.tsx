@@ -16,6 +16,7 @@ interface CustomPressable {
   radius?: number;
   styles?: StyleProp<ViewStyle>;
   handleColor?: string;
+  handlePosition?: 'left' | 'bottom';
 }
 export default function CustomPressable(props: CustomPressable) {
   return (
@@ -29,19 +30,28 @@ export default function CustomPressable(props: CustomPressable) {
         style={styles.pressable}
         android_ripple={{color: 'gray'}}
         onPress={props.onPress}>
-        <SelectedHandle selected={props.selected} color={props.handleColor} />
+        <SelectedHandle
+          selected={props.selected}
+          color={props.handleColor}
+          position={props.handlePosition}
+        />
         {props.children}
       </Pressable>
     </View>
   );
 }
 
-const SelectedHandle = (props: {selected?: boolean; color?: string}) => {
+const SelectedHandle = (props: {
+  selected?: boolean;
+  color?: string;
+  position?: 'left' | 'bottom';
+}) => {
   return props.selected ? (
     <View
       style={[
         styles.selectedHandle,
         props.color ? {backgroundColor: props.color} : undefined,
+        props.position === 'bottom' ? styles.bottomHandle : undefined,
       ]}
     />
   ) : null;
@@ -60,5 +70,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: 3,
     backgroundColor: Colors.primaryColor,
+  },
+  bottomHandle: {
+    left: undefined,
+    bottom: 0,
+    height: 3,
+    width: 15,
   },
 });

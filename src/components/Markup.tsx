@@ -208,10 +208,8 @@ function Emoji(props: {name: string; url: string; large?: boolean}) {
 function MentionChannel(props: {channel: Channel}) {
   return (
     <View style={styles.mention}>
-      <View style={{width: 1}} />
       <Text style={styles.mentionChannelHash}>#</Text>
       <Text style={styles.mentionText}>{props.channel.name}</Text>
-      <View style={{width: 1}} />
     </View>
   );
 }
@@ -219,10 +217,8 @@ function MentionChannel(props: {channel: Channel}) {
 function MentionUser(props: {user: RawUser | User}) {
   return (
     <View style={styles.mention}>
-      <View style={{width: 1}} />
       <Avatar user={props.user} size={16} />
       <Text style={styles.mentionText}>{props.user.username}</Text>
-      <View style={{width: 1}} />
     </View>
   );
 }
@@ -302,9 +298,8 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: 'rgba(0,0,0,.2)',
     borderRadius: 8,
-    height: 20,
-    transform: [{translateY: 5}],
-    padding: 10,
+    transform: [{translateY: 8}],
+    padding: 5,
   },
   mentionText: {
     color: Colors.primaryColor,

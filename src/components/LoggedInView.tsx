@@ -18,8 +18,8 @@ import Header from './ui/Header';
 import Colors from './ui/Colors';
 import {ChannelType} from '../store/RawData';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
-// type Props = NativeStackScreenProps<RootStackParamList, 'Main'>;
 const styles = StyleSheet.create({
   pageContainer: {
     backgroundColor: Colors.backgroundColor,
@@ -71,12 +71,77 @@ const styles = StyleSheet.create({
   serverChannelName: {
     color: 'rgb(255,255,255)',
   },
+  tabBarContainer: {
+    backgroundColor: Colors.backgroundColor,
+  },
+  tabBarInnerContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.paneColor,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    alignItems: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    height: 60,
+    gap: 5,
+  },
+  tabBarItemContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    width: 50,
+  },
 });
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Main'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
+export type LoggedInTabParamList = {
+  Home: {serverId?: string};
+};
+export type LoggedInTabRouteProp = RouteProp<LoggedInTabParamList, 'Home'>;
+export type LoggedInTabNavigationProp = NavigationProp<LoggedInTabParamList>;
+
+const Tab = createBottomTabNavigator<LoggedInTabParamList>();
+
+const TabBar = observer(() => {
+  const {account} = useStore();
+  return (
+    <View style={styles.tabBarContainer}>
+      <View style={styles.tabBarInnerContainer}>
+        <TabBarItem selected>
+          <Icon name="all-inbox" size={25} />
+        </TabBarItem>
+        <TabBarItem>
+          {account.user && <Avatar user={account.user} size={25} />}
+        </TabBarItem>
+      </View>
+    </View>
+  );
+});
+
+const TabBarItem = (props: {
+  children?: React.JSX.Element | null;
+  selected?: boolean;
+}) => {
+  return (
+    <CustomPressable handlePosition="bottom" selected={props.selected}>
+      <View style={styles.tabBarItemContainer}>{props.children}</View>
+    </CustomPressable>
+  );
+};
+
 export default function LoggedInView() {
+  return (
+    <Tab.Navigator
+      tabBar={() => <TabBar />}
+      screenOptions={{headerShown: false}}>
+      <Tab.Screen name="Home" component={ServerScreen} />
+    </Tab.Navigator>
+  );
+}
+
+function ServerScreen() {
   return (
     <View style={styles.pageContainer}>
       <View>
@@ -186,8 +251,8 @@ const ServerList = observer(() => {
 });
 
 const ServerItem = observer((props: {server: Server}) => {
-  const nav = useNavigation<MainScreenNavigationProp>();
-  const route = useRoute<MainScreenRouteProp>();
+  const nav = useNavigation<LoggedInTabNavigationProp>();
+  const route = useRoute<LoggedInTabRouteProp>();
 
   const selected = route.params?.serverId === props.server.id;
 
@@ -198,7 +263,7 @@ const ServerItem = observer((props: {server: Server}) => {
         props.server.hasNotifications ? Colors.alertColor : undefined
       }
       onPress={() =>
-        startTransition(() => nav.navigate('Main', {serverId: props.server.id}))
+        startTransition(() => nav.navigate('Home', {serverId: props.server.id}))
       }>
       <View style={styles.serverItemContainer}>
         <Avatar animate={selected} size={50} server={props.server} />
