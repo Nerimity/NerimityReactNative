@@ -47,7 +47,7 @@ export default React.memo(
           styles.messageItemContainer,
           isCompact ? styles.compactMessageItemContainer : undefined,
         ]}>
-        {!isCompact && <Avatar size={40} user={props.item.createdBy} />}
+        {!isCompact && <Avatar size={35} user={props.item.createdBy} />}
         <View style={styles.messageInnerContainer}>
           {!isCompact && <Details {...props} />}
           <Content message={props.item} />
@@ -168,16 +168,16 @@ const styles = StyleSheet.create({
   messageItemContainer: {
     paddingLeft: 10,
     paddingRight: 10,
-    paddingTop: 10,
-    paddingBottom: 3,
+    marginTop: 15,
     gap: 5,
     flexDirection: 'row',
   },
   compactMessageItemContainer: {
-    marginLeft: 45,
+    marginLeft: 40,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 0,
+    marginTop: 0,
+    paddingVertical: 2,
   },
   messageInnerContainer: {flex: 1, flexWrap: 'wrap'},
   detailsContainer: {flexDirection: 'row', gap: 5, alignItems: 'center'},

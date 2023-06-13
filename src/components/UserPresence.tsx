@@ -37,7 +37,7 @@ const UserPresence = (props: {
   return (
     <View style={styles.userPresence}>
       <View style={[styles.dot, {backgroundColor: statusDetails.color}]} />
-      <View style={{opacity: 0.8, backgroundColor: 'red', height: 18}}>
+      <View style={{opacity: 0.8}}>
         <Markup inline text={user?.presence?.custom || statusDetails?.name} />
       </View>
     </View>

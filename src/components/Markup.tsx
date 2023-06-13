@@ -243,11 +243,11 @@ const Markup = React.memo((props: MarkupProps) => {
   const output = transformEntity(entity, ctx);
 
   let newOutput = [];
-
-  let el = createElement(Text, {}, []);
-
   const largeEmoji =
     !ctx.props.inline && ctx.emojiCount <= 5 && ctx.textCount === 0;
+
+  let el = createElement(Text, {style: {lineHeight: largeEmoji ? 43 : 18}}, []);
+
   if (Array.isArray(output.props.children)) {
     for (let i = 0; i < output.props.children.length; i++) {
       let element = output.props.children[i];
@@ -270,7 +270,7 @@ const Markup = React.memo((props: MarkupProps) => {
   }
   el.props.children?.length && newOutput.push(el);
 
-  return <View>{newOutput}</View>;
+  return <View style={{}}>{newOutput}</View>;
 });
 
 export default Markup;
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: 'rgba(0,0,0,.2)',
     borderRadius: 8,
-    transform: [{translateY: 8}],
-    padding: 5,
+    transform: [{translateY: 5}],
+    padding: 3,
   },
   mentionText: {
     color: Colors.primaryColor,
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   emoji: {
     width: 20,
     height: 20,
-    transform: [{translateY: 4}],
+    transform: [{translateY: 5}],
   },
   largeEmoji: {width: 50, height: 50, transform: [{translateY: 4}]},
   quoteContainer: {
