@@ -1,6 +1,6 @@
 import React, {startTransition} from 'react';
 import {observer} from 'mobx-react-lite';
-import {ScrollView, Text, View, StyleSheet} from 'react-native';
+import {ScrollView, Text, View, StyleSheet, StatusBar} from 'react-native';
 import {useStore} from '../store/store';
 import {Server} from '../store/servers';
 
@@ -16,21 +16,25 @@ import Avatar from './ui/Avatar';
 import {RootStackParamList} from '../../App';
 import Header from './ui/Header';
 import Colors from './ui/Colors';
-import {ChannelType} from '../store/RawData';
+import {ChannelType, FriendStatus} from '../store/RawData';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
+import SettingsScreen from './SettingsScreen';
+import {Friend} from '../store/friends';
+import UserPresence from './UserPresence';
 
 const styles = StyleSheet.create({
   pageContainer: {
     backgroundColor: Colors.backgroundColor,
     flexDirection: 'row',
+    flex: 1,
   },
   serverListContainer: {height: '100%', marginLeft: 5, marginRight: 5},
-  serverPane: {
-    backgroundColor: 'rgb(35 38 41)',
+  pane: {
+    backgroundColor: Colors.paneColor,
 
     flex: 1,
     margin: 10,
@@ -94,6 +98,13 @@ const styles = StyleSheet.create({
     height: 50,
     width: 50,
   },
+  friendItem: {
+    flexDirection: 'row',
+    padding: 5,
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    gap: 10,
+  },
 });
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Main'>;
@@ -101,6 +112,7 @@ export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
 export type LoggedInTabParamList = {
   Home: {serverId?: string};
+  Settings: {serverId?: string};
 };
 export type LoggedInTabRouteProp = RouteProp<LoggedInTabParamList, 'Home'>;
 export type LoggedInTabNavigationProp = NavigationProp<LoggedInTabParamList>;
@@ -119,7 +131,9 @@ const TabBar = observer((props: BottomTabBarProps) => {
           onPress={() => props.navigation.navigate('Home', {})}>
           <Icon name="all-inbox" size={25} />
         </TabBarItem>
-        <TabBarItem>
+        <TabBarItem
+          selected={selectedIndex === 1}
+          onPress={() => props.navigation.navigate('Settings', {})}>
           {account.user && <Avatar user={account.user} size={25} />}
         </TabBarItem>
       </View>
@@ -146,8 +160,10 @@ export default function LoggedInView() {
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
-      screenOptions={{headerShown: false}}>
+      screenOptions={{headerShown: false}}
+      detachInactiveScreens>
       <Tab.Screen name="Home" component={ServerScreen} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
@@ -155,28 +171,93 @@ export default function LoggedInView() {
 function ServerScreen() {
   return (
     <View style={styles.pageContainer}>
-      <View>
-        <ServerList />
-      </View>
-
-      <ServerPane />
+      <StatusBar backgroundColor={Colors.backgroundColor} />
+      <ServerList />
+      <Pane />
     </View>
   );
 }
 
-const ServerPane = () => {
+const Pane = () => {
   const route = useRoute<MainScreenRouteProp>();
+  return (
+    <View style={styles.pane}>
+      {route.params?.serverId && (
+        <ServerPane serverId={route.params.serverId} />
+      )}
+      {!route.params?.serverId && <InboxPane />}
+    </View>
+  );
+};
+
+const separateFriends = (friends: Friend[]) => {
+  const requests = [];
+  const onlineFriends = [];
+  const offlineFriends = [];
+
+  for (let i = 0; i < friends.length; i++) {
+    const friend = friends[i];
+    const user = friend.recipient;
+    if (
+      friend.status === FriendStatus.PENDING ||
+      friend.status === FriendStatus.SENT
+    ) {
+      // move incoming requests to the top.
+      if (friend.status === FriendStatus.PENDING) {
+        requests.unshift(friend);
+        continue;
+      }
+      requests.push(friend);
+      continue;
+    }
+    if (!user.presence?.status) {
+      offlineFriends.push(friend);
+      continue;
+    }
+    onlineFriends.push(friend);
+  }
+  return {requests, onlineFriends, offlineFriends};
+};
+const InboxPane = observer(() => {
+  const {friends} = useStore();
+  const seperated = separateFriends(friends.array);
+  console.log(seperated.onlineFriends);
+  return (
+    <>
+      <Header title="Temp" />
+      {seperated.onlineFriends.map(onlineFriend => (
+        <FriendItem key={onlineFriend.recipientId} friend={onlineFriend} />
+      ))}
+    </>
+  );
+});
+
+const FriendItem = (props: {friend: Friend}) => {
+  const user = props.friend.recipient;
+  return (
+    <CustomPressable>
+      <View style={styles.friendItem}>
+        <Avatar user={user} size={30} />
+        <View>
+          <Text>{user.username}</Text>
+          <UserPresence showOffline={false} userId={user.id} />
+        </View>
+      </View>
+    </CustomPressable>
+  );
+};
+
+const ServerPane = (props: {serverId: string}) => {
   const {servers, channels} = useStore();
 
-  const server = servers.cache[route.params?.serverId!];
-
+  const server = servers.cache[props.serverId];
   return (
-    <View style={styles.serverPane}>
+    <>
       <Header title={server?.name || '...'} />
       <ServerChannelList
         channels={channels.getSortedChannelsByServerId(server?.id)}
       />
-    </View>
+    </>
   );
 };
 
@@ -250,14 +331,17 @@ const ServerChannelItem = observer((props: {channel: Channel}) => {
 
 const ServerList = observer(() => {
   const {servers} = useStore();
+
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      style={styles.serverListContainer}>
-      {servers.orderedArray.map(server => (
-        <ServerItem server={server} key={server.id} />
-      ))}
-    </ScrollView>
+    <View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.serverListContainer}>
+        {servers.orderedArray.map(server => (
+          <ServerItem server={server} key={server.id} />
+        ))}
+      </ScrollView>
+    </View>
   );
 });
 

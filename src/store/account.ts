@@ -24,6 +24,11 @@ export class Account {
     makeAutoObservable(this, {store: false});
     getUserToken().then(token => this.setToken(token));
   }
+  reset() {
+    this.user = null;
+    this.token = undefined;
+    getUserToken().then(token => this.setToken(token));
+  }
   setToken(token: string | null) {
     this.token = token;
   }

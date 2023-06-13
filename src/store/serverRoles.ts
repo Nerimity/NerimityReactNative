@@ -9,6 +9,9 @@ export class ServerRoles {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
   addCache(rawServerRole: RawServerRole) {
     const role = new ServerRole(this.store, rawServerRole);
     if (!this.cache[rawServerRole.serverId]) {

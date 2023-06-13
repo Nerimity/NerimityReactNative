@@ -11,6 +11,9 @@ export class Channels {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
   addCache(rawChannel: RawChannel) {
     const channel = new Channel(this.store, rawChannel);
     this.cache[channel.id] = channel;

@@ -15,6 +15,9 @@ export class Mentions {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
 
   set(channelId: string, mention: Mention) {
     this.cache[channelId] = mention;

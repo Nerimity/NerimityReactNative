@@ -19,6 +19,9 @@ export class Messages {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
 
   addMessage(channelId: string, message: Message) {
     this.store.messages.cache[channelId]?.unshift?.(message);

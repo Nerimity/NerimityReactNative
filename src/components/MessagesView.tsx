@@ -6,7 +6,7 @@ import {
 } from '@react-navigation/native';
 import React, {startTransition, useCallback, useEffect, useState} from 'react';
 
-import {View, StyleSheet, TextInput} from 'react-native';
+import {View, StyleSheet, TextInput, StatusBar} from 'react-native';
 import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
@@ -35,6 +35,7 @@ const useChannelMessages = () => {
 export default function MessagesView() {
   return (
     <View style={styles.pageContainer}>
+      <StatusBar backgroundColor={Colors.paneColor} />
       <PageHeader />
       <MessageList />
       <InputArea />

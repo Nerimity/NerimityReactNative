@@ -10,6 +10,9 @@ export class Servers {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
   addCache(rawServer: RawServer) {
     const server = new Server(this.store, rawServer);
     this.cache[server.id] = server;

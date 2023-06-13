@@ -8,6 +8,8 @@ import {Mentions} from './mentions';
 import {Users} from './users';
 import {ServerMembers} from './serverMembers';
 import {ServerRoles} from './serverRoles';
+import {removeUserToken} from '../utils/EncryptedStore';
+import {Friends} from './friends';
 
 export class Store {
   socket: Socket;
@@ -19,6 +21,7 @@ export class Store {
   users: Users;
   serverMembers: ServerMembers;
   serverRoles: ServerRoles;
+  friends: Friends;
   constructor() {
     this.account = new Account(this);
     this.users = new Users(this);
@@ -28,7 +31,21 @@ export class Store {
     this.channels = new Channels(this);
     this.servers = new Servers(this);
     this.mentions = new Mentions(this);
+    this.friends = new Friends(this);
     this.socket = new Socket(this);
+  }
+  async logout() {
+    this.socket.io.disconnect();
+    await removeUserToken();
+    this.account.reset();
+    this.users.reset();
+    this.serverRoles.reset();
+    this.serverMembers.reset();
+    this.messages.reset();
+    this.channels.reset();
+    this.servers.reset();
+    this.mentions.reset();
+    this.friends.reset();
   }
 }
 

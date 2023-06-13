@@ -1,6 +1,6 @@
 import React, {useRef, useState} from 'react';
 
-import {View, StyleSheet, Text, TextInput} from 'react-native';
+import {View, StyleSheet, Text, TextInput, StatusBar} from 'react-native';
 
 import Colors from './ui/Colors';
 import CustomInput from './ui/CustomInput';
@@ -18,6 +18,8 @@ import {RootStackParamList} from '../../App';
 export default function LoginView() {
   return (
     <View style={styles.pageContainer}>
+      <StatusBar backgroundColor={Colors.paneColor} />
+
       <CenteredContainer />
     </View>
   );

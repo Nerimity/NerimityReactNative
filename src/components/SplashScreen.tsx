@@ -6,7 +6,7 @@ import {
 import React, {useEffect} from 'react';
 import Logo from '../assets/logo.png';
 
-import {View, StyleSheet, Text, Image} from 'react-native';
+import {View, StyleSheet, Image, StatusBar} from 'react-native';
 import {RootStackParamList} from '../../App';
 
 import Colors from './ui/Colors';
@@ -20,20 +20,23 @@ const SplashScreen = observer(() => {
   const nav = useNavigation<MainNavigationProp>();
 
   useEffect(() => {
-    setTimeout(() => {
-      if (account.token === null) {
+    if (account.token === null) {
+      setTimeout(() => {
         nav.dispatch(StackActions.replace('Login'));
-        return;
-      }
-      if (account.token) {
+      }, 300);
+      return;
+    }
+    if (account.token) {
+      setTimeout(() => {
         nav.dispatch(StackActions.replace('Main'));
         socket.connect();
-      }
-    }, 300);
+      }, 300);
+    }
   }, [account.token, nav, socket]);
 
   return (
     <View style={styles.pageContainer}>
+      <StatusBar backgroundColor={Colors.paneColor} />
       <Image style={styles.logo} source={Image.resolveAssetSource(Logo)} />
     </View>
   );

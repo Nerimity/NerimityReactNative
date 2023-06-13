@@ -32,6 +32,9 @@ export class Users {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
   addCache(rawUser: RawUser) {
     const user = new User(this.store, rawUser);
     this.cache[user.id] = user;

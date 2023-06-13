@@ -79,6 +79,7 @@ const Content = observer((props: {message: RawMessage}) => {
   return (
     <View style={{width: '100%'}}>
       <Markup text={props.message.content || ''} message={props.message} />
+
       <Embeds message={props.message} />
       {/* <MessageStatus message={props.message} /> */}
     </View>

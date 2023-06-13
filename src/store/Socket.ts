@@ -42,7 +42,6 @@ export class Socket {
   store: Store;
   constructor(store: Store) {
     this.store = store;
-    console.log('Connecting...');
     this.io = io('https://nerimity.com', {
       transports: ['websocket'],
       autoConnect: false,
@@ -66,6 +65,7 @@ export class Socket {
   }
 
   connect() {
+    console.log('Connecting...');
     if (!this.io.connected) {
       this.io.connect();
     }
@@ -80,6 +80,11 @@ export class Socket {
     transaction(() => {
       this.store.account.addSelfUser(payload.user);
       this.store.users.addCache(payload.user);
+
+      for (let i = 0; i < payload.friends.length; i++) {
+        const friend = payload.friends[i];
+        this.store.friends.addCache(friend);
+      }
 
       for (let i = 0; i < payload.serverRoles.length; i++) {
         const role = payload.serverRoles[i];

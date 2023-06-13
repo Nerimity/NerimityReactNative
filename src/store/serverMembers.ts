@@ -24,6 +24,9 @@ export class ServerMembers {
     this.store = store;
     makeAutoObservable(this, {store: false});
   }
+  reset() {
+    this.cache = {};
+  }
   addCache(rawServerMember: RawServerMember) {
     const user = new ServerMember(this.store, rawServerMember);
     if (!this.cache[rawServerMember.serverId]) {

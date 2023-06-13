@@ -12,7 +12,7 @@ import Colors from './Colors';
 interface CustomPressable {
   selected?: boolean;
   onPress?: ((event: GestureResponderEvent) => void) | null;
-  children: JSX.Element;
+  children: JSX.Element | JSX.Element[];
   radius?: number;
   styles?: StyleProp<ViewStyle>;
   handleColor?: string;
