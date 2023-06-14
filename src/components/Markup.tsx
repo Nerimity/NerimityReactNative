@@ -1,4 +1,4 @@
-import React, {createElement} from 'react';
+import React, {createElement, useEffect, useState} from 'react';
 import {Message} from '../store/messages';
 import {Text, StyleSheet, View, Linking} from 'react-native';
 import {parseMarkup, addTextSpans, Entity, Span} from '@nerimity/nevula';
@@ -193,10 +193,19 @@ function Link(props: {url: string}) {
   );
 }
 
-function Emoji(props: {name: string; url: string; large?: boolean}) {
+function Emoji(props: {
+  name: string;
+  url: string;
+  large?: boolean;
+  inline?: boolean;
+}) {
   return (
     <FastImage
-      style={[styles.emoji, props.large && styles.largeEmoji]}
+      style={[
+        styles.emoji,
+        props.large && styles.largeEmoji,
+        props.inline && styles.inlineEmoji,
+      ]}
       source={{
         uri: props.url,
         priority: FastImage.priority.low,
@@ -237,7 +246,7 @@ function QuoteMessage(props: {message: Message; quote: Partial<Message>}) {
   );
 }
 
-const Markup = React.memo((props: MarkupProps) => {
+const MarkupOuter = (props: MarkupProps) => {
   const ctx = {props, emojiCount: 0, textCount: 0};
   const entity = addTextSpans(parseMarkup(ctx.props.text));
   const output = transformEntity(entity, ctx);
@@ -245,6 +254,8 @@ const Markup = React.memo((props: MarkupProps) => {
   let newOutput = [];
   const largeEmoji =
     !ctx.props.inline && ctx.emojiCount <= 5 && ctx.textCount === 0;
+
+  const inlineEmoji = ctx.emojiCount && !ctx.textCount && props.inline;
 
   let el = createElement(Text, {style: {lineHeight: largeEmoji ? 43 : 18}}, []);
 
@@ -258,9 +269,10 @@ const Markup = React.memo((props: MarkupProps) => {
         continue;
       }
 
-      if (largeEmoji && element.type === Emoji) {
+      if ((largeEmoji || inlineEmoji) && element.type === Emoji) {
         element = React.cloneElement(element, {
           large: largeEmoji,
+          inline: !!inlineEmoji,
         });
       }
       el.props.children?.push(element);
@@ -270,8 +282,19 @@ const Markup = React.memo((props: MarkupProps) => {
   }
   el.props.children?.length && newOutput.push(el);
 
-  return <View style={{}}>{newOutput}</View>;
-});
+  return <View>{newOutput}</View>;
+};
+
+const Markup = (props: MarkupProps) => {
+  const [test, setTest] = useState(0);
+
+  const test2 = () => setTest(test + 1);
+  useEffect(() => {
+    test2();
+  }, [props.text]);
+
+  return <MarkupOuter {...props} key={test} />;
+};
 
 export default Markup;
 
@@ -316,6 +339,7 @@ const styles = StyleSheet.create({
     transform: [{translateY: 5}],
   },
   largeEmoji: {width: 50, height: 50, transform: [{translateY: 4}]},
+  inlineEmoji: {transform: [{translateY: 1}]},
   quoteContainer: {
     borderLeftColor: Colors.primaryColor,
     borderLeftWidth: 2,

@@ -98,12 +98,25 @@ const styles = StyleSheet.create({
     height: 50,
     width: 50,
   },
+  inboxScrollView: {
+    padding: 5,
+  },
   friendItem: {
     flexDirection: 'row',
     padding: 5,
     alignSelf: 'flex-start',
     alignItems: 'center',
     gap: 10,
+  },
+  indexFriendCategory: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 5,
+    borderRadius: 8,
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  indexFriendCategoryTitle: {
+    paddingLeft: 5,
   },
 });
 
@@ -220,22 +233,49 @@ const separateFriends = (friends: Friend[]) => {
 };
 const InboxPane = observer(() => {
   const {friends} = useStore();
-  const seperated = separateFriends(friends.array);
-  console.log(seperated.onlineFriends);
+  const separated = separateFriends(friends.array);
   return (
     <>
-      <Header title="Temp" />
-      {seperated.onlineFriends.map(onlineFriend => (
-        <FriendItem key={onlineFriend.recipientId} friend={onlineFriend} />
-      ))}
+      <Header title="Inbox" />
+      <ScrollView style={styles.inboxScrollView}>
+        {!!separated.requests.length && (
+          <IndexFriendCategory
+            friends={separated.requests}
+            title={`Requests (${separated.requests.length})`}
+          />
+        )}
+        {!!separated.onlineFriends.length && (
+          <IndexFriendCategory
+            friends={separated.onlineFriends}
+            title={`Online (${separated.onlineFriends.length})`}
+          />
+        )}
+        {!!separated.offlineFriends.length && (
+          <IndexFriendCategory
+            friends={separated.offlineFriends}
+            title={`Offline (${separated.offlineFriends.length})`}
+          />
+        )}
+      </ScrollView>
     </>
   );
 });
 
+const IndexFriendCategory = (props: {friends: Friend[]; title: String}) => {
+  return (
+    <View style={styles.indexFriendCategory}>
+      <Text style={styles.indexFriendCategoryTitle}>{props.title}</Text>
+      {props.friends.map(friend => (
+        <FriendItem key={friend.recipientId} friend={friend} />
+      ))}
+    </View>
+  );
+};
+
 const FriendItem = (props: {friend: Friend}) => {
   const user = props.friend.recipient;
   return (
-    <CustomPressable>
+    <CustomPressable unstable_pressDelay={100}>
       <View style={styles.friendItem}>
         <Avatar user={user} size={30} />
         <View>

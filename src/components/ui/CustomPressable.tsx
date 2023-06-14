@@ -17,6 +17,7 @@ interface CustomPressable {
   styles?: StyleProp<ViewStyle>;
   handleColor?: string;
   handlePosition?: 'left' | 'bottom';
+  unstable_pressDelay?: number;
 }
 export default function CustomPressable(props: CustomPressable) {
   return (
@@ -27,6 +28,7 @@ export default function CustomPressable(props: CustomPressable) {
         props.styles,
       ]}>
       <Pressable
+        unstable_pressDelay={props.unstable_pressDelay}
         style={styles.pressable}
         android_ripple={{color: 'gray'}}
         onPress={props.onPress}>
