@@ -10,6 +10,8 @@ import {ServerMembers} from './serverMembers';
 import {ServerRoles} from './serverRoles';
 import {removeUserToken} from '../utils/EncryptedStore';
 import {Friends} from './friends';
+import {Inbox} from './inbox';
+import {transaction} from 'mobx';
 
 export class Store {
   socket: Socket;
@@ -22,6 +24,7 @@ export class Store {
   serverMembers: ServerMembers;
   serverRoles: ServerRoles;
   friends: Friends;
+  inbox: Inbox;
   constructor() {
     this.account = new Account(this);
     this.users = new Users(this);
@@ -32,20 +35,24 @@ export class Store {
     this.servers = new Servers(this);
     this.mentions = new Mentions(this);
     this.friends = new Friends(this);
+    this.inbox = new Inbox(this);
     this.socket = new Socket(this);
   }
   async logout() {
     this.socket.io.disconnect();
     await removeUserToken();
-    this.account.reset();
-    this.users.reset();
-    this.serverRoles.reset();
-    this.serverMembers.reset();
-    this.messages.reset();
-    this.channels.reset();
-    this.servers.reset();
-    this.mentions.reset();
-    this.friends.reset();
+    transaction(() => {
+      this.account.reset();
+      this.users.reset();
+      this.serverRoles.reset();
+      this.serverMembers.reset();
+      this.messages.reset();
+      this.channels.reset();
+      this.servers.reset();
+      this.mentions.reset();
+      this.friends.reset();
+      this.inbox.reset();
+    });
   }
 }
 

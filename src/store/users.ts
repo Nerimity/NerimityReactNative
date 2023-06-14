@@ -1,6 +1,12 @@
-import {makeAutoObservable} from 'mobx';
-import {RawPresence, RawUser} from './RawData';
+import {makeAutoObservable, transaction} from 'mobx';
+import {
+  RawChannel,
+  RawInboxWithoutChannel,
+  RawPresence,
+  RawUser,
+} from './RawData';
 import {Store} from './store';
+import {openDMChannelRequest} from '../services/UserService';
 
 export enum UserStatus {
   OFFLINE = 0,
@@ -36,6 +42,9 @@ export class Users {
     this.cache = {};
   }
   addCache(rawUser: RawUser) {
+    if (this.get(rawUser.id)) {
+      return;
+    }
     const user = new User(this.store, rawUser);
     this.cache[user.id] = user;
   }
@@ -55,6 +64,7 @@ export class User {
   avatar?: string;
   store: Store;
   presence?: Presence;
+  inboxChannelId?: string;
 
   constructor(store: Store, user: RawUser) {
     this.store = store;
@@ -65,8 +75,29 @@ export class User {
     this.avatar = user.avatar;
     this.tag = user.tag;
     this.presence = undefined;
+    this.inboxChannelId = undefined;
   }
   updatePresence(presence: RawPresence) {
     this.presence = presence;
+  }
+  setInboxChannelId(channelId: string) {
+    this.inboxChannelId = channelId;
+  }
+  async openDMChannel() {
+    const inboxItem = () => this.store.inbox.get(this.inboxChannelId!);
+    if (inboxItem()) {
+      console.log('cache');
+      return inboxItem()!.channel;
+    }
+    console.log('fetch');
+    const rawInbox = await openDMChannelRequest(this.id);
+
+    transaction(() => {
+      this.store.channels.addCache(rawInbox.channel!);
+
+      this.store.inbox.addCache({...rawInbox, channelId: rawInbox.channel?.id});
+    });
+
+    return inboxItem()!.channel;
   }
 }

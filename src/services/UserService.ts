@@ -1,4 +1,5 @@
 import config from '../../config';
+import {RawChannel, RawInboxWithoutChannel} from '../store/RawData';
 import {request} from './Request';
 import ServiceEndpoints from './ServiceEndpoints';
 
@@ -14,5 +15,13 @@ export async function loginRequest(
       ...(isUsernameAndTag ? {usernameAndTag: email} : {email}),
       password,
     },
+  });
+}
+
+export async function openDMChannelRequest(userId: string) {
+  return request<RawInboxWithoutChannel & {channel: RawChannel}>({
+    url: config.serverUrl + '/api' + ServiceEndpoints.openUserDM(userId),
+    method: 'POST',
+    useToken: true,
   });
 }

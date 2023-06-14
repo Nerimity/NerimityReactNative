@@ -100,7 +100,10 @@ export class Socket {
         const channels = payload.channels[i];
         this.store.channels.addCache(channels);
       }
-
+      for (let i = 0; i < payload.inbox.length; i++) {
+        const inboxItem = payload.inbox[i];
+        this.store.inbox.addCache(inboxItem);
+      }
       for (let i = 0; i < payload.serverMembers.length; i++) {
         const serverMember = payload.serverMembers[i];
         this.store.serverMembers.addCache(serverMember);

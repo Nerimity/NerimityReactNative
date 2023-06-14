@@ -274,8 +274,19 @@ const IndexFriendCategory = (props: {friends: Friend[]; title: String}) => {
 
 const FriendItem = (props: {friend: Friend}) => {
   const user = props.friend.recipient;
+  const nav = useNavigation<MainScreenNavigationProp>();
+
+  const onPress = async () => {
+    const channel = await user.openDMChannel();
+    startTransition(() =>
+      nav.navigate('Message', {
+        channelId: channel?.id!,
+      }),
+    );
+  };
+
   return (
-    <CustomPressable unstable_pressDelay={100}>
+    <CustomPressable unstable_pressDelay={100} onPress={onPress}>
       <View style={styles.friendItem}>
         <Avatar user={user} size={30} />
         <View>

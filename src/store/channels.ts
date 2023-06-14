@@ -81,6 +81,7 @@ export class Channel {
   store: Store;
   type: ChannelType;
   categoryId?: string;
+  recipientId?: string;
 
   constructor(store: Store, channel: RawChannel) {
     this.store = store;
@@ -95,6 +96,10 @@ export class Channel {
     makeAutoObservable(this, {id: false, serverId: false, store: false});
     this.id = channel.id;
     this.serverId = channel.serverId;
+    this.recipientId = undefined;
+  }
+  setRecipientId(userId: string) {
+    this.recipientId = userId;
   }
 
   updateLastSeen(lastSeen: number) {
@@ -102,6 +107,9 @@ export class Channel {
   }
   updateLastMessaged(lastMessaged: number) {
     this.lastMessagedAt = lastMessaged;
+  }
+  get recipient() {
+    return this.store.users.get(this.recipientId!);
   }
 
   get isAdminChannel() {

@@ -110,9 +110,10 @@ const PageHeader = () => {
   const {channels} = useStore();
 
   const channel = channels.cache[route.params.channelId];
+  const name = channel?.name || channel.recipient?.username;
   return (
     <Header
-      title={channel?.name || '...'}
+      title={name || '...'}
       onPress={() =>
         nav.navigate('ChannelDetails', {
           channelId: channel.id,
