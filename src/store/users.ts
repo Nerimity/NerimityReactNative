@@ -86,10 +86,8 @@ export class User {
   async openDMChannel() {
     const inboxItem = () => this.store.inbox.get(this.inboxChannelId!);
     if (inboxItem()) {
-      console.log('cache');
       return inboxItem()!.channel;
     }
-    console.log('fetch');
     const rawInbox = await openDMChannelRequest(this.id);
 
     transaction(() => {
