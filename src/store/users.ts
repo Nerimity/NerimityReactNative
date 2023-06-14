@@ -1,10 +1,5 @@
 import {makeAutoObservable, transaction} from 'mobx';
-import {
-  RawChannel,
-  RawInboxWithoutChannel,
-  RawPresence,
-  RawUser,
-} from './RawData';
+import {RawUser} from './RawData';
 import {Store} from './store';
 import {openDMChannelRequest} from '../services/UserService';
 
@@ -68,17 +63,20 @@ export class User {
 
   constructor(store: Store, user: RawUser) {
     this.store = store;
-    makeAutoObservable(this, {id: false, store: false});
-    this.id = user.id;
+    this.presence = undefined;
+    this.inboxChannelId = undefined;
     this.username = user.username;
     this.hexColor = user.hexColor;
     this.avatar = user.avatar;
     this.tag = user.tag;
-    this.presence = undefined;
-    this.inboxChannelId = undefined;
+    makeAutoObservable(this, {id: false, store: false});
+    this.id = user.id;
   }
-  updatePresence(presence: RawPresence) {
-    this.presence = presence;
+  updatePresence(presence: Partial<Presence>) {
+    this.presence = presence as Presence;
+    if (!presence.status) {
+      this.presence = undefined;
+    }
   }
   setInboxChannelId(channelId: string) {
     this.inboxChannelId = channelId;

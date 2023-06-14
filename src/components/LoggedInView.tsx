@@ -103,7 +103,8 @@ const styles = StyleSheet.create({
   },
   friendItem: {
     flexDirection: 'row',
-    padding: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     alignSelf: 'flex-start',
     alignItems: 'center',
     gap: 10,
@@ -272,9 +273,11 @@ const IndexFriendCategory = (props: {friends: Friend[]; title: String}) => {
   );
 };
 
-const FriendItem = (props: {friend: Friend}) => {
-  const user = props.friend.recipient;
+const FriendItem = observer((props: {friend: Friend}) => {
   const nav = useNavigation<MainScreenNavigationProp>();
+  const {mentions} = useStore();
+  const user = props.friend.recipient;
+  const notificationCount = mentions.getDmCount(user.id);
 
   const onPress = async () => {
     const channel = await user.openDMChannel();
@@ -286,7 +289,11 @@ const FriendItem = (props: {friend: Friend}) => {
   };
 
   return (
-    <CustomPressable unstable_pressDelay={100} onPress={onPress}>
+    <CustomPressable
+      selected={notificationCount > 0}
+      handleColor={Colors.alertColor}
+      unstable_pressDelay={100}
+      onPress={onPress}>
       <View style={styles.friendItem}>
         <Avatar user={user} size={30} />
         <View>
@@ -296,7 +303,7 @@ const FriendItem = (props: {friend: Friend}) => {
       </View>
     </CustomPressable>
   );
-};
+});
 
 const ServerPane = (props: {serverId: string}) => {
   const {servers, channels} = useStore();

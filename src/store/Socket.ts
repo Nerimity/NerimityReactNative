@@ -14,6 +14,7 @@ import {
   RawUser,
 } from './RawData';
 import {SelfUser} from './account';
+import {UserStatus} from './users';
 
 interface AuthenticatedPayload {
   user: SelfUser;
@@ -52,6 +53,11 @@ export class Socket {
     this.io.on(
       ServerEvents.USER_AUTHENTICATED,
       this.onAuthenticated.bind(this),
+    );
+
+    this.io.on(
+      ServerEvents.USER_PRESENCE_UPDATE,
+      this.onUserPresenceUpdate.bind(this),
     );
 
     this.io.on(ServerEvents.MESSAGE_CREATED, this.onMessageCreated.bind(this));
@@ -115,20 +121,20 @@ export class Socket {
 
       for (let i = 0; i < payload.messageMentions.length; i++) {
         const mention = payload.messageMentions[i];
-        const channel = this.store.channels.get(mention.channelId);
-        if (!channel) {
-          continue;
-        }
-        if (!mention.serverId) {
-          // TODO: handle this later PLSS
-          continue;
-        }
         this.store.mentions.set(mention.channelId, {
           channelId: mention.channelId,
           userId: mention.mentionedById,
           count: mention.count,
           serverId: mention.serverId,
         });
+        const channel = this.store.channels.get(mention.channelId);
+        if (!channel) {
+          continue;
+        }
+        if (!mention.serverId) {
+          channel.updateLastSeen(mention.createdAt);
+          continue;
+        }
       }
 
       for (let channelId in payload.lastSeenServerChannelIds) {
@@ -141,10 +147,22 @@ export class Socket {
     if (payload.socketId === this.io.id) {
       return;
     }
+    const selfUser = this.store.account.user;
 
     const channel = this.store.channels.get(payload.message.channelId);
-    channel?.updateLastMessaged(payload.message.createdAt);
+    if (!channel) {
+      return;
+    }
 
+    transaction(() => {
+      channel.updateLastMessaged(payload.message.createdAt);
+
+      if (selfUser?.id === payload.message.createdBy.id) {
+        channel.updateLastSeen(payload.message.createdAt + 1);
+      } else if (!channel || channel.recipient) {
+        this.store.users.addCache(payload.message.createdBy);
+      }
+    });
     const mentionCount =
       this.store.mentions.get(payload.message.channelId)?.count || 0;
 
@@ -152,7 +170,7 @@ export class Socket {
       u => u.id === this.store.account.user?.id!,
     );
 
-    if (!channel?.serverId || isMentioned) {
+    if (!channel.serverId || isMentioned) {
       this.store.mentions.set(payload.message.channelId, {
         channelId: payload.message.channelId,
         userId: payload.message.createdBy.id,
@@ -183,5 +201,28 @@ export class Socket {
       channel?.updateLastSeen((channel.lastMessagedAt || Date.now()) + 1);
       this.store.mentions.remove(payload.channelId);
     });
+  }
+  onUserPresenceUpdate(payload: {
+    status?: UserStatus;
+    custom?: string;
+    userId: string;
+  }) {
+    const user = this.store.users.get(payload.userId);
+    if (!user) {
+      return;
+    }
+    const newPresence = {
+      ...user.presence,
+      ...(payload.status !== undefined ? {status: payload.status} : undefined),
+      ...(payload.custom ? {custom: payload.custom} : undefined),
+    };
+    if (payload.status === null) {
+      delete newPresence.status;
+    }
+    if (payload.custom === null) {
+      delete newPresence.custom;
+    }
+
+    user?.updatePresence(newPresence);
   }
 }

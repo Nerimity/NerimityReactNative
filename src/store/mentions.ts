@@ -28,4 +28,16 @@ export class Mentions {
   get get() {
     return (channelId: string) => this.cache[channelId] as Mention | undefined;
   }
+
+  get array() {
+    return Object.values(this.cache);
+  }
+
+  get getDmCount() {
+    return (userId: string) =>
+      this.array.find(m => {
+        const channel = this.store.channels.get(m.channelId!);
+        return m?.userId === userId && (!channel || channel.recipientId);
+      })?.count || 0;
+  }
 }
