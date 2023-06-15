@@ -52,10 +52,10 @@ jobs:
         run: |
           cd android && ./gradlew assembleRelease --no-daemon
 
-      - name: Rename apk
+      - name: Rename and move apk
         run: |
           cd android/app/build/outputs/apk/release
-          mv app-release.apk nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+          mv app-release.apk /github/workspace/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
 
 
    
@@ -66,4 +66,4 @@ jobs:
           prerelease: false
           draft: true
           files: |
-            android/app/build/outputs/apk/release/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+            nerimity-${{ steps.get_version.outputs.VERSION }}.apk
