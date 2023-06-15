@@ -36,7 +36,10 @@ jobs:
           envkey_EMOJI_URL: "https://nerimity.com/twemojis/"
           envkey_NERIMITY_CDN: "https://cdn.nerimity.com/"
 
-      - name: Build App
+      - name: Make Gradlew Executable
+        run: cd android && chmod +x ./gradlew
+
+      - name: Build Apk
         run: |
           cd android && ./gradlew assembleRelease --no-daemon
 
