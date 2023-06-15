@@ -64,6 +64,8 @@ export class Socket {
     this.io.on(ServerEvents.MESSAGE_UPDATED, this.onMessageUpdated.bind(this));
     this.io.on(ServerEvents.MESSAGE_DELETED, this.onMessageDeleted.bind(this));
 
+    this.io.on(ServerEvents.INBOX_OPENED, this.onInboxOpened.bind(this));
+
     this.io.on(
       ServerEvents.NOTIFICATION_DISMISSED,
       this.onNotificationDismissed.bind(this),
@@ -127,6 +129,9 @@ export class Socket {
           count: mention.count,
           serverId: mention.serverId,
         });
+
+        this.store.users.addCache(mention.mentionedBy);
+
         const channel = this.store.channels.get(mention.channelId);
         if (!channel) {
           continue;
@@ -150,33 +155,33 @@ export class Socket {
     const selfUser = this.store.account.user;
 
     const channel = this.store.channels.get(payload.message.channelId);
-    if (!channel) {
-      return;
-    }
 
     transaction(() => {
-      channel.updateLastMessaged(payload.message.createdAt);
+      channel?.updateLastMessaged(payload.message.createdAt);
 
       if (selfUser?.id === payload.message.createdBy.id) {
-        channel.updateLastSeen(payload.message.createdAt + 1);
+        channel?.updateLastSeen(payload.message.createdAt + 1);
       } else if (!channel || channel.recipient) {
         this.store.users.addCache(payload.message.createdBy);
       }
     });
-    const mentionCount =
-      this.store.mentions.get(payload.message.channelId)?.count || 0;
 
-    const isMentioned = payload.message.mentions?.find(
-      u => u.id === this.store.account.user?.id!,
-    );
+    if (selfUser?.id !== payload.message.createdBy.id) {
+      const mentionCount =
+        this.store.mentions.get(payload.message.channelId)?.count || 0;
 
-    if (!channel.serverId || isMentioned) {
-      this.store.mentions.set(payload.message.channelId, {
-        channelId: payload.message.channelId,
-        userId: payload.message.createdBy.id,
-        count: mentionCount + 1,
-        serverId: channel?.serverId,
-      });
+      const isMentioned = payload.message.mentions?.find(
+        u => u.id === this.store.account.user?.id!,
+      );
+
+      if (!channel?.serverId || isMentioned) {
+        this.store.mentions.set(payload.message.channelId, {
+          channelId: payload.message.channelId,
+          userId: payload.message.createdBy.id,
+          count: mentionCount + 1,
+          serverId: channel?.serverId,
+        });
+      }
     }
 
     this.store.messages.addMessage(payload.message.channelId, payload.message);
@@ -200,6 +205,12 @@ export class Socket {
     transaction(() => {
       channel?.updateLastSeen((channel.lastMessagedAt || Date.now()) + 1);
       this.store.mentions.remove(payload.channelId);
+    });
+  }
+  onInboxOpened(payload: RawInboxWithoutChannel & {channel: RawChannel}) {
+    transaction(() => {
+      this.store.channels.addCache(payload.channel);
+      this.store.inbox.addCache({...payload, channelId: payload.channel.id});
     });
   }
   onUserPresenceUpdate(payload: {

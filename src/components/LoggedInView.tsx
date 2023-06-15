@@ -1,30 +1,22 @@
-import React, {startTransition} from 'react';
+import React from 'react';
 import {observer} from 'mobx-react-lite';
-import {ScrollView, Text, View, StyleSheet, StatusBar} from 'react-native';
+import {View, StyleSheet, StatusBar} from 'react-native';
 import {useStore} from '../store/store';
-import {Server} from '../store/servers';
 
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import {Channel} from '../store/channels';
+import {NavigationProp, RouteProp, useRoute} from '@react-navigation/native';
 import CustomPressable from './ui/CustomPressable';
 import Avatar from './ui/Avatar';
 import {RootStackParamList} from '../../App';
-import Header from './ui/Header';
 import Colors from './ui/Colors';
-import {ChannelType, FriendStatus} from '../store/RawData';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   BottomTabBarProps,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import SettingsScreen from './SettingsScreen';
-import {Friend} from '../store/friends';
-import UserPresence from './UserPresence';
+
+import {ServerList, ServerPane} from './ServerView';
+import {InboxPane} from './InboxView';
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -203,224 +195,3 @@ const Pane = () => {
     </View>
   );
 };
-
-const separateFriends = (friends: Friend[]) => {
-  const requests = [];
-  const onlineFriends = [];
-  const offlineFriends = [];
-
-  for (let i = 0; i < friends.length; i++) {
-    const friend = friends[i];
-    const user = friend.recipient;
-    if (
-      friend.status === FriendStatus.PENDING ||
-      friend.status === FriendStatus.SENT
-    ) {
-      // move incoming requests to the top.
-      if (friend.status === FriendStatus.PENDING) {
-        requests.unshift(friend);
-        continue;
-      }
-      requests.push(friend);
-      continue;
-    }
-    if (!user.presence?.status) {
-      offlineFriends.push(friend);
-      continue;
-    }
-    onlineFriends.push(friend);
-  }
-  return {requests, onlineFriends, offlineFriends};
-};
-const InboxPane = observer(() => {
-  const {friends} = useStore();
-  const separated = separateFriends(friends.array);
-  return (
-    <>
-      <Header title="Inbox" />
-      <ScrollView style={styles.inboxScrollView}>
-        {!!separated.requests.length && (
-          <IndexFriendCategory
-            friends={separated.requests}
-            title={`Requests (${separated.requests.length})`}
-          />
-        )}
-        {!!separated.onlineFriends.length && (
-          <IndexFriendCategory
-            friends={separated.onlineFriends}
-            title={`Online (${separated.onlineFriends.length})`}
-          />
-        )}
-        {!!separated.offlineFriends.length && (
-          <IndexFriendCategory
-            friends={separated.offlineFriends}
-            title={`Offline (${separated.offlineFriends.length})`}
-          />
-        )}
-      </ScrollView>
-    </>
-  );
-});
-
-const IndexFriendCategory = (props: {friends: Friend[]; title: String}) => {
-  return (
-    <View style={styles.indexFriendCategory}>
-      <Text style={styles.indexFriendCategoryTitle}>{props.title}</Text>
-      {props.friends.map(friend => (
-        <FriendItem key={friend.recipientId} friend={friend} />
-      ))}
-    </View>
-  );
-};
-
-const FriendItem = observer((props: {friend: Friend}) => {
-  const nav = useNavigation<MainScreenNavigationProp>();
-  const {mentions} = useStore();
-  const user = props.friend.recipient;
-  const notificationCount = mentions.getDmCount(user.id);
-
-  const onPress = async () => {
-    const channel = await user.openDMChannel();
-    startTransition(() =>
-      nav.navigate('Message', {
-        channelId: channel?.id!,
-      }),
-    );
-  };
-
-  return (
-    <CustomPressable
-      selected={notificationCount > 0}
-      handleColor={Colors.alertColor}
-      unstable_pressDelay={100}
-      onPress={onPress}>
-      <View style={styles.friendItem}>
-        <Avatar user={user} size={30} />
-        <View>
-          <Text>{user.username}</Text>
-          <UserPresence showOffline={false} userId={user.id} />
-        </View>
-      </View>
-    </CustomPressable>
-  );
-});
-
-const ServerPane = (props: {serverId: string}) => {
-  const {servers, channels} = useStore();
-
-  const server = servers.cache[props.serverId];
-  return (
-    <>
-      <Header title={server?.name || '...'} />
-      <ServerChannelList
-        channels={channels.getSortedChannelsByServerId(server?.id)}
-      />
-    </>
-  );
-};
-
-const ServerChannelList = observer((props: {channels: Channel[]}) => {
-  return (
-    <ScrollView style={styles.serverChannelListContainer}>
-      {props.channels.map(channel => {
-        if (channel.categoryId) {
-          return null;
-        }
-        if (channel.type === ChannelType.CATEGORY) {
-          return <ServerCategoryItem key={channel.id} category={channel} />;
-        }
-        return <ServerChannelItem key={channel.id} channel={channel} />;
-      })}
-    </ScrollView>
-  );
-});
-
-const ServerCategoryItem = (props: {category: Channel}) => {
-  const {channels} = useStore();
-  const categoryChannels = channels
-    .getSortedChannelsByServerId(props.category.serverId!)
-    .filter(c => c.categoryId === props.category.id);
-
-  return (
-    <View style={styles.serverCategoryContainer}>
-      <View style={styles.serverCategoryHeader}>
-        <Icon name="segment" size={20} />
-        <Text>{props.category.name}</Text>
-      </View>
-      <CategoryChannelList channels={categoryChannels} />
-    </View>
-  );
-};
-
-const CategoryChannelList = (props: {channels: Channel[]}) => {
-  return (
-    <View>
-      {props.channels.map(channel => (
-        <ServerChannelItem key={channel.id} channel={channel} />
-      ))}
-    </View>
-  );
-};
-
-const ServerChannelItem = observer((props: {channel: Channel}) => {
-  const nav = useNavigation<MainScreenNavigationProp>();
-
-  return (
-    <CustomPressable
-      selected={props.channel.hasNotifications()}
-      handleColor={Colors.alertColor}
-      onPress={() =>
-        startTransition(() =>
-          nav.navigate('Message', {
-            channelId: props.channel.id,
-            serverId: props.channel.serverId,
-          }),
-        )
-      }>
-      <View style={styles.serverChannelItem}>
-        <Text style={styles.hashIcon}>#</Text>
-        <Text numberOfLines={1} style={styles.serverChannelName}>
-          {props.channel.name}
-        </Text>
-      </View>
-    </CustomPressable>
-  );
-});
-
-const ServerList = observer(() => {
-  const {servers} = useStore();
-
-  return (
-    <View>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.serverListContainer}>
-        {servers.orderedArray.map(server => (
-          <ServerItem server={server} key={server.id} />
-        ))}
-      </ScrollView>
-    </View>
-  );
-});
-
-const ServerItem = observer((props: {server: Server}) => {
-  const nav = useNavigation<LoggedInTabNavigationProp>();
-  const route = useRoute<LoggedInTabRouteProp>();
-
-  const selected = route.params?.serverId === props.server.id;
-
-  return (
-    <CustomPressable
-      selected={selected || !!props.server.hasNotifications}
-      handleColor={
-        props.server.hasNotifications ? Colors.alertColor : undefined
-      }
-      onPress={() =>
-        startTransition(() => nav.navigate('Home', {serverId: props.server.id}))
-      }>
-      <View style={styles.serverItemContainer}>
-        <Avatar animate={selected} size={50} server={props.server} />
-      </View>
-    </CustomPressable>
-  );
-});
