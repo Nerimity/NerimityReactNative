@@ -1,0 +1,57 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: tag-release
+
+# This workflow can be used for pushing to the production server and will only be ran when code is pushed to the main branch
+
+on:
+  push:
+    tags:
+      - "v*"
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: node:16
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get the version
+        id: get_version
+        run: echo "VERSION=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
+
+      - name: Install Node.js dependencies
+        run: |
+          npm i
+
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_SERVER_URL: "https://nerimity.com"
+          envkey_DEV_MODE: "false"
+          envkey_APP_VERSION: ${{ steps.get_version.outputs.VERSION }}
+          envkey_TURNSTILE_SITEKEY: "0x4AAAAAAABO1ilip_YaVHJk"
+          envkey_EMOJI_URL: "https://nerimity.com/twemojis/"
+          envkey_NERIMITY_CDN: "https://cdn.nerimity.com/"
+
+      - name: Build App
+        run: |
+          cd android && ./gradlew assembleRelease --no-daemon
+
+      - name: Rename apk
+        run: |
+          cd android/app/build/outputs/apk/release
+          mv app-release.apk nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+
+
+   
+      - name: Publish Draft Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          draft: true
+          files: |
+            android/app/build/outputs/apk/release/nerimity-${{ steps.get_version.outputs.VERSION }}.apk

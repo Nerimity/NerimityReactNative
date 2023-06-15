@@ -8,6 +8,7 @@ import Banner from './ui/Banner';
 import CustomPressable from './ui/CustomPressable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {StackActions, useNavigation} from '@react-navigation/native';
+import env from '../utils/env';
 
 export default function SettingsScreen() {
   const store = useStore();
@@ -27,6 +28,10 @@ export default function SettingsScreen() {
             label="Logout"
             color={Colors.alertColor}
             icon="logout"
+          />
+          <SettingPressable
+            label={`App version: ${env.APP_VERSION || 'Unknown'}`}
+            icon="info"
           />
         </View>
       </View>
