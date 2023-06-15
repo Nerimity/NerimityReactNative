@@ -14,8 +14,8 @@ import {
   unicodeToTwemojiUrl,
 } from '../utils/emoji/emoji';
 
-import config from '../../config';
 import FastImage from 'react-native-fast-image';
+import env from '../utils/env';
 
 interface MarkupProps {
   text: string;
@@ -90,7 +90,7 @@ function transformCustomEntity(entity: CustomEntity, ctx: RenderContext) {
           {...{
             animated,
             name,
-            url: `${config.nerimityCdnUrl}emojis/${id}${
+            url: `${env.NERIMITY_CDN}emojis/${id}${
               animated ? '.gif' : '.webp'
             }`,
           }}

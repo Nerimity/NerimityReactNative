@@ -9,8 +9,8 @@ import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
 import Markup from './Markup';
 import FastImage from 'react-native-fast-image';
-import config from '../../config';
 import {useWindowDimensions} from 'react-native';
+import env from '../utils/env';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -134,7 +134,7 @@ const ImageEmbed = (props: {
     <FastImage
       style={[style, styles.imageEmbed]}
       source={{
-        uri: config.nerimityCdnUrl + props.attachment.path,
+        uri: env.NERIMITY_CDN + props.attachment.path,
         priority: FastImage.priority.normal,
       }}
       resizeMode="contain"

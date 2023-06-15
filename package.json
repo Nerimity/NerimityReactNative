@@ -46,6 +46,7 @@
     "metro-config": "^0.73.9",
     "metro-react-native-babel-preset": "0.73.9",
     "prettier": "^2.4.1",
+    "react-native-dotenv": "^3.4.8",
     "react-test-renderer": "18.2.0",
     "typescript": "4.8.4"
   },

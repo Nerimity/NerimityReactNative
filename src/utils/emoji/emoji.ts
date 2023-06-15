@@ -1,7 +1,6 @@
 import twemoji from 'twemoji';
 import shortcodesToUnicode from './shortcodes-to-unicode.json';
 import unicodesToShortcode from './unicode-to-shortcodes.json';
-import config from '../../../config';
 
 export function emojiShortcodeToUnicode(shortcode: string): string {
   return (shortcodesToUnicode as Record<string, string>)[shortcode];

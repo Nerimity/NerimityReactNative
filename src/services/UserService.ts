@@ -1,5 +1,5 @@
-import config from '../../config';
 import {RawChannel, RawInboxWithoutChannel} from '../store/RawData';
+import env from '../utils/env';
 import {request} from './Request';
 import ServiceEndpoints from './ServiceEndpoints';
 
@@ -9,7 +9,7 @@ export async function loginRequest(
 ): Promise<{token: string}> {
   const isUsernameAndTag = email.includes(':');
   return request({
-    url: config.serverUrl + '/api' + ServiceEndpoints.login(),
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.login(),
     method: 'POST',
     body: {
       ...(isUsernameAndTag ? {usernameAndTag: email} : {email}),
@@ -20,7 +20,7 @@ export async function loginRequest(
 
 export async function openDMChannelRequest(userId: string) {
   return request<RawInboxWithoutChannel & {channel: RawChannel}>({
-    url: config.serverUrl + '/api' + ServiceEndpoints.openUserDM(userId),
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.openUserDM(userId),
     method: 'POST',
     useToken: true,
   });

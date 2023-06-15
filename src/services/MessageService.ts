@@ -1,5 +1,5 @@
-import config from '../../config';
 import {RawAttachment, RawMessage} from '../store/RawData';
+import env from '../utils/env';
 import {request} from './Request';
 import Endpoints from './ServiceEndpoints';
 
@@ -11,7 +11,7 @@ export const fetchMessages = async (
 ) => {
   const data = await request<RawMessage[]>({
     method: 'GET',
-    url: config.serverUrl + '/api' + Endpoints.messages(channelId),
+    url: env.SERVER_URL + '/api' + Endpoints.messages(channelId),
     params: {
       limit,
       ...(afterMessageId ? {after: afterMessageId} : undefined),
@@ -30,7 +30,7 @@ export const fetchChannelAttachments = async (
 ) => {
   const data = await request<RawAttachment[]>({
     method: 'GET',
-    url: config.serverUrl + '/api' + Endpoints.channelAttachments(channelId),
+    url: env.SERVER_URL + '/api' + Endpoints.channelAttachments(channelId),
     params: {
       limit,
       ...(afterAttachmentId ? {after: afterAttachmentId} : undefined),
@@ -66,7 +66,7 @@ export const postMessage = async (opts: PostMessageOpts) => {
 
   const data = await request<RawMessage>({
     method: 'POST',
-    url: config.serverUrl + '/api' + Endpoints.messages(opts.channelId),
+    url: env.SERVER_URL + '/api' + Endpoints.messages(opts.channelId),
     useToken: true,
     body,
   });
@@ -83,7 +83,7 @@ export const updateMessage = async (opts: UpdateMessageOpts) => {
   const data = await request<Partial<{updated: RawMessage}>>({
     method: 'PATCH',
     url:
-      config.serverUrl +
+      env.SERVER_URL +
       '/api' +
       Endpoints.message(opts.channelId, opts.messageId),
     useToken: true,
@@ -97,7 +97,7 @@ export const updateMessage = async (opts: UpdateMessageOpts) => {
 export const postChannelTyping = async (channelId: string) => {
   const data = await request<RawMessage>({
     method: 'POST',
-    url: config.serverUrl + '/api' + Endpoints.channelTyping(channelId),
+    url: env.SERVER_URL + '/api' + Endpoints.channelTyping(channelId),
     useToken: true,
     notJSON: true,
   });
@@ -113,7 +113,7 @@ export const deleteMessage = async (opts: DeleteMessageOpts) => {
   const data = await request<{message: string}>({
     method: 'DELETE',
     url:
-      config.serverUrl +
+      env.SERVER_URL +
       '/api' +
       Endpoints.message(opts.channelId, opts.messageId),
     useToken: true,
@@ -130,7 +130,7 @@ export const addMessageReaction = async (opts: {
   const data = await request<any>({
     method: 'POST',
     url:
-      config.serverUrl +
+      env.SERVER_URL +
       '/api' +
       Endpoints.message(opts.channelId, opts.messageId) +
       '/reactions',
@@ -152,7 +152,7 @@ export const removeMessageReaction = async (opts: {
   const data = await request<any>({
     method: 'POST',
     url:
-      config.serverUrl +
+      env.SERVER_URL +
       '/api' +
       Endpoints.message(opts.channelId, opts.messageId) +
       '/reactions/remove',

@@ -8,7 +8,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ChannelDetailsView from './src/components/ChannelDetailsView';
 import LoginView from './src/components/LoginView';
 import SplashScreen from './src/components/SplashScreen';
-
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
