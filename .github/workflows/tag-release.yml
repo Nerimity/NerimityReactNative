@@ -68,5 +68,5 @@ jobs:
           prerelease: false
           draft: true
           files: |
-          metro.config.js
+              metro.config.js
         # nerimity-${{ steps.get_version.outputs.VERSION }}.apk
