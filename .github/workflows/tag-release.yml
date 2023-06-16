@@ -74,6 +74,6 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          draft: true
+          draft: false
           files: |
               nerimity-${{ steps.get_version.outputs.VERSION }}.apk
