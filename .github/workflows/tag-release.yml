@@ -57,7 +57,7 @@ jobs:
           cd android/app/build/outputs/apk/release
           pwd
           ls
-          mv app-release.apk /__w/NerimityReactNative/NerimityReactNative/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+          mv app-release.apk $GITHUB_WORKSPACE/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
 
 
    
