@@ -6,8 +6,8 @@ import {
 } from '@react-navigation/native';
 import React, {startTransition, useCallback, useEffect, useState} from 'react';
 
-import {View, StyleSheet, TextInput, StatusBar} from 'react-native';
-import {RootStackParamList} from '../../App';
+import {View, StyleSheet, TextInput, StatusBar, AppState} from 'react-native';
+import App, {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
 import MessageItem from './MessageItem';
@@ -23,8 +23,20 @@ export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
 const useChannelMessages = () => {
   const route = useRoute<MainScreenRouteProp>();
-  const {messages} = useStore();
+  const {messages, channels} = useStore();
+  const channel = channels.get(route.params.channelId);
   const channelMessages = messages.channelMessages(route.params.channelId);
+
+  useEffect(() => {
+    channel?.dismissNotification();
+    const onFocus = () => {
+      channel?.dismissNotification();
+    };
+
+    const event = AppState.addEventListener('focus', onFocus);
+
+    return () => event.remove();
+  }, [channel]);
 
   useEffect(() => {
     messages.fetchAndCacheMessages(route.params.channelId);
@@ -44,8 +56,14 @@ export default function MessagesView() {
 }
 
 const MessageList = observer(() => {
+  const {channels} = useStore();
   const messages = useChannelMessages();
   const route = useRoute<MainScreenRouteProp>();
+  const channel = channels.get(route.params.channelId);
+
+  useEffect(() => {
+    channel?.dismissNotification();
+  }, [channel, messages?.length]);
 
   return (
     <FlashList

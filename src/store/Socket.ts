@@ -41,12 +41,34 @@ interface MessageMention {
 export class Socket {
   io: IOSocket;
   store: Store;
+  socketEvents: SocketEvents;
   constructor(store: Store) {
     this.store = store;
     this.io = io('https://nerimity.com', {
       transports: ['websocket'],
       autoConnect: false,
     });
+    this.socketEvents = new SocketEvents(this.store, this.io);
+  }
+
+  connect() {
+    console.log('Connecting...');
+    if (!this.io.connected) {
+      this.io.connect();
+    }
+  }
+
+  dismissChannelNotification(channelId: string) {
+    this.io.emit(ClientEvents.NOTIFICATION_DISMISS, {channelId});
+  }
+}
+
+class SocketEvents {
+  store: Store;
+  io: IOSocket;
+  constructor(store: Store, io: IOSocket) {
+    this.store = store;
+    this.io = io;
 
     // register events
     this.io.on(ServerEvents.CONNECT, this.onConnect.bind(this));
@@ -71,14 +93,6 @@ export class Socket {
       this.onNotificationDismissed.bind(this),
     );
   }
-
-  connect() {
-    console.log('Connecting...');
-    if (!this.io.connected) {
-      this.io.connect();
-    }
-  }
-
   onConnect() {
     console.log('Authenticating...');
     this.io.emit(ClientEvents.AUTHENTICATE, {token: this.store.account.token});

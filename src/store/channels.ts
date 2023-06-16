@@ -3,6 +3,7 @@ import {ChannelType, RawChannel} from './RawData';
 import {Store} from './store';
 import {CHANNEL_PERMISSIONS, ROLE_PERMISSIONS, hasBit} from '../utils/bitwise';
 import {computedFn} from 'mobx-utils';
+import {AppState} from 'react-native';
 
 export class Channels {
   cache: Record<string, Channel> = {};
@@ -108,6 +109,20 @@ export class Channel {
   updateLastMessaged(lastMessaged: number) {
     this.lastMessagedAt = lastMessaged;
   }
+
+  dismissNotification(force = false) {
+    if (force) {
+      return this.store.socket.dismissChannelNotification(this.id);
+    }
+    if (AppState.currentState !== 'active') {
+      return;
+    }
+    if (!this.hasNotifications) {
+      return;
+    }
+    this.store.socket.dismissChannelNotification(this.id);
+  }
+
   get recipient() {
     return this.store.users.get(this.recipientId!);
   }
