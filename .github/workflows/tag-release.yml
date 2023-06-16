@@ -52,13 +52,21 @@ jobs:
         run: |
           cd android && ./gradlew assembleRelease --no-daemon
 
+      
+      - name: Sign app APK
+        uses: r0adkll/sign-android-release@v1
+        # ID used to access action output
+        id: sign_app
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
       - name: Rename and move apk
         run: |
-          cd android/app/build/outputs/apk/release
-          pwd
-          ls
-          mv app-release.apk $GITHUB_WORKSPACE/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
-
+          mv ${{steps.sign_app.outputs.signedReleaseFile}} $GITHUB_WORKSPACE/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
 
    
       - name: Publish Draft Release
