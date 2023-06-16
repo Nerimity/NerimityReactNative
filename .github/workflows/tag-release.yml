@@ -55,7 +55,9 @@ jobs:
       - name: Rename and move apk
         run: |
           cd android/app/build/outputs/apk/release
-          mv app-release.apk /github/workspace/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+          pwd
+          ls
+          mv app-release.apk /workspaces/NerimityReactNative/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
 
 
    
