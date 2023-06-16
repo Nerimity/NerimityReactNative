@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 
 import LoggedInView from './src/components/LoggedInView';
@@ -8,6 +8,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import ChannelDetailsView from './src/components/ChannelDetailsView';
 import LoginView from './src/components/LoginView';
 import SplashScreen from './src/components/SplashScreen';
+import {getLatestRelease} from './src/utils/githubApi';
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
@@ -19,6 +20,10 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): JSX.Element {
+  useEffect(() => {
+    // getLatestRelease()
+  }, []);
+
   return (
     <StoreProvider>
       <NavigationContainer>
