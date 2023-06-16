@@ -1,10 +1,11 @@
 const owner = 'Nerimity';
-const repo = 'nerimity-web';
+const repo = 'NerimityReactNative';
 
 export interface Release {
   tag_name: string;
   name: string;
   body: string;
+  html_url: string;
   published_at: string;
   assets?: {
     name: string;
@@ -35,4 +36,5 @@ export async function getLatestRelease() {
   json.mainAssetUrl = json.assets?.find(a =>
     a.name.endsWith('.apk'),
   )?.browser_download_url;
+  return json;
 }

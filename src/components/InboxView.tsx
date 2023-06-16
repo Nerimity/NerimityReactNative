@@ -116,8 +116,6 @@ const useRecent = () => {
     })
     .map(m => users.get(m?.userId!));
 
-  console.log(mentionUserArray);
-
   const newUsers = [...mentionUserArray];
   const inboxArray = inbox.array.sort((a, b) => {
     const aTime = a.channel?.lastMessagedAt!;
