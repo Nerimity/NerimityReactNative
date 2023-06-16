@@ -132,6 +132,9 @@ const PageHeader = () => {
   return (
     <Header
       title={name || '...'}
+      channelId={channel.id}
+      serverId={channel.serverId}
+      userId={channel.recipient?.id}
       onPress={() =>
         nav.navigate('ChannelDetails', {
           channelId: channel.id,
