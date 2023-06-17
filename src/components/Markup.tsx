@@ -23,6 +23,7 @@ interface MarkupProps {
   message?: Message;
   inline?: boolean;
   isQuote?: boolean;
+  afterComponent?: React.JSX.Element;
 }
 
 type RenderContext = {
@@ -278,8 +279,16 @@ const MarkupOuter = (props: MarkupProps) => {
       el.props.children?.push(element);
     }
   } else {
-    return <View>{output}</View>;
+    return (
+      <View>
+        <Text>
+          {output}
+          {props.afterComponent}
+        </Text>
+      </View>
+    );
   }
+  props.afterComponent && el.props.children?.push(props.afterComponent);
   el.props.children?.length && newOutput.push(el);
 
   return <View>{newOutput}</View>;
@@ -291,6 +300,8 @@ const Markup = (props: MarkupProps) => {
   const test2 = () => setTest(test + 1);
   useEffect(() => {
     test2();
+    // This is done line this because editing emojis breaks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.text]);
 
   return <MarkupOuter {...props} key={test} />;

@@ -78,10 +78,13 @@ const Details = observer((props: MessageItemProps) => {
 const Content = observer((props: {message: RawMessage}) => {
   return (
     <View style={{width: '100%'}}>
-      <Markup text={props.message.content || ''} message={props.message} />
+      <Markup
+        text={props.message.content || ''}
+        message={props.message}
+        afterComponent={<MessageStatus message={props.message} />}
+      />
 
       <Embeds message={props.message} />
-      {/* <MessageStatus message={props.message} /> */}
     </View>
   );
 });
@@ -184,10 +187,9 @@ const styles = StyleSheet.create({
   timestamp: {fontSize: 12, opacity: 0.6},
   messageStatus: {
     height: 10,
-    width: 15,
+    width: 13,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    marginLeft: 10,
   },
   imageEmbed: {
     borderRadius: 8,
