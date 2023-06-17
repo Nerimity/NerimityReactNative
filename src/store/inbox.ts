@@ -39,6 +39,7 @@ export class InboxItem {
     const channel = this.store.channels.get(inbox.channelId);
     channel?.setRecipientId(inbox.recipient.id);
     channel?.recipient?.setInboxChannelId(inbox.channelId);
+    inbox.lastSeen && channel?.updateLastSeen(inbox.lastSeen);
 
     makeAutoObservable(this, {
       id: false,

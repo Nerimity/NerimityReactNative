@@ -94,10 +94,10 @@ export class Channel {
     this.lastSeen = undefined;
     this.order = channel.order;
     this.categoryId = channel.categoryId;
+    this.recipientId = undefined;
     makeAutoObservable(this, {id: false, serverId: false, store: false});
     this.id = channel.id;
     this.serverId = channel.serverId;
-    this.recipientId = undefined;
   }
   setRecipientId(userId: string) {
     this.recipientId = userId;

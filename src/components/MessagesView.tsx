@@ -5,10 +5,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, {
+  Fragment,
   startTransition,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -33,7 +35,7 @@ import {ChannelDetailsScreenNavigationProp} from './ChannelDetailsView';
 import {RawMessage} from '../store/RawData';
 import {ServerEvents} from '../store/EventNames';
 import {postChannelTyping} from '../services/MessageService';
-
+import Icon from 'react-native-vector-icons/MaterialIcons';
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
@@ -44,7 +46,6 @@ const useChannelMessages = () => {
   const channelMessages = messages.channelMessages(route.params.channelId);
 
   useEffect(() => {
-    channel?.dismissNotification();
     const onFocus = () => {
       channel?.dismissNotification();
     };
@@ -77,13 +78,47 @@ const MessageList = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
   const channel = channels.get(route.params.channelId);
 
+  const channelMessages = messages?.slice();
+
+  const [unreadMarker, setUnreadMarker] = useState<{
+    lastSeenAt: number | null;
+    messageId: string | null;
+  }>({lastSeenAt: null, messageId: null});
+
+  const updateUnreadMarker = useCallback(
+    (ignoreFocus = false) => {
+      if (!ignoreFocus && AppState.currentState === 'active') {
+        return;
+      }
+
+      const lastSeenAt = channel?.lastSeen || -1;
+      const message = [...(channelMessages || [])]
+        .reverse()
+        .find(m => m.createdAt - lastSeenAt >= 0);
+      setUnreadMarker({
+        lastSeenAt,
+        messageId: message?.id || null,
+      });
+    },
+    [channel?.lastSeen, channelMessages],
+  );
+
+  const prevMessageLength = useRef<undefined | number>(undefined);
+
   useEffect(() => {
-    channel?.dismissNotification();
-  }, [channel, messages?.length]);
+    if (channelMessages?.length) {
+      updateUnreadMarker(prevMessageLength.current === undefined);
+      prevMessageLength.current = channelMessages.length;
+    }
+    channelMessages && channel?.dismissNotification();
+  }, [channelMessages?.length]);
+
+  // useEffect(() => {
+  // }, [channel, messages?.length]);
 
   return (
     <FlashList
-      data={(messages || []).slice()}
+      data={channelMessages || []}
       estimatedItemSize={53}
       contentContainerStyle={styles.flashListContentContainer}
       inverted
@@ -91,16 +126,32 @@ const MessageList = observer(() => {
       keyExtractor={item => item.id}
       renderItem={props => {
         return (
-          <MessageItem
-            item={props.item}
-            index={props.index}
-            serverId={route.params.serverId}
-          />
+          <>
+            {props.item.id === unreadMarker.messageId && <UnreadMarker />}
+            <MessageItem
+              item={props.item}
+              index={props.index}
+              serverId={route.params.serverId}
+            />
+          </>
         );
       }}
     />
   );
 });
+
+const UnreadMarker = () => {
+  return (
+    <View style={styles.unreadMarkerContainer}>
+      <View style={styles.unreadMarkerLine} />
+      <View style={styles.unreadMarker}>
+        <Icon name="mark-chat-unread" color="white" />
+        <Text style={styles.unreadMarkerText}>New Messages</Text>
+      </View>
+      <View style={styles.unreadMarkerLine} />
+    </View>
+  );
+};
 
 const InputArea = () => {
   return (
@@ -341,5 +392,26 @@ const styles = StyleSheet.create({
   },
   typingIndicatorText: {
     fontSize: 10,
+  },
+  unreadMarkerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadMarker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    padding: 5,
+    backgroundColor: Colors.alertColor,
+    borderRadius: 6,
+  },
+  unreadMarkerText: {
+    fontSize: 12,
+  },
+  unreadMarkerLine: {
+    height: 1,
+    backgroundColor: Colors.alertColor,
+    flex: 1,
   },
 });
