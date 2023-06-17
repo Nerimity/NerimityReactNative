@@ -20,7 +20,7 @@ import {
   AppState,
   Text,
 } from 'react-native';
-import App, {RootStackParamList} from '../../App';
+import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
 import {observer} from 'mobx-react-lite';
 import MessageItem from './MessageItem';
@@ -84,7 +84,7 @@ const MessageList = observer(() => {
     <FlashList
       data={(messages || []).slice()}
       estimatedItemSize={53}
-      contentContainerStyle={{paddingTop: 20}}
+      contentContainerStyle={styles.flashListContentContainer}
       inverted
       showsVerticalScrollIndicator={false}
       keyExtractor={item => item.id}
@@ -286,6 +286,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.paneColor,
     flexDirection: 'column',
     height: '100%',
+  },
+  flashListContentContainer: {
+    paddingTop: 20,
   },
   customInputContainer: {
     flexDirection: 'row',
