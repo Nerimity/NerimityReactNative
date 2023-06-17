@@ -32,6 +32,7 @@ import {FlashList} from '@shopify/flash-list';
 import {ChannelDetailsScreenNavigationProp} from './ChannelDetailsView';
 import {RawMessage} from '../store/RawData';
 import {ServerEvents} from '../store/EventNames';
+import {postChannelTyping} from '../services/MessageService';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -233,16 +234,28 @@ const CustomInput = () => {
   const route = useRoute<MainScreenRouteProp>();
   const {messages} = useStore();
   const [message, setMessage] = useState('');
+  const [typingTimeoutId, setTypingTimeoutId] = useState<null | number>(null);
   const onSend = useCallback(() => {
+    const formattedMessage = message.trim();
+    setMessage('');
+    if (!formattedMessage.length) {
+      return;
+    }
     startTransition(() => {
-      const formattedMessage = message.trim();
-      setMessage('');
-      if (!formattedMessage.length) {
-        return;
-      }
       messages.postMessage(route.params.channelId, formattedMessage);
     });
-  }, [message, messages, route.params.channelId]);
+    typingTimeoutId && clearTimeout(typingTimeoutId);
+    setTypingTimeoutId(null);
+  }, [message, messages, route.params.channelId, typingTimeoutId]);
+
+  const onInput = (text: string) => {
+    setMessage(text);
+    if (typingTimeoutId) {
+      return;
+    }
+    postChannelTyping(route.params.channelId);
+    setTypingTimeoutId(setTimeout(() => setTypingTimeoutId(null), 4000));
+  };
 
   return (
     <View style={styles.customInputContainer}>
@@ -250,7 +263,7 @@ const CustomInput = () => {
         style={styles.customInput}
         placeholder="Message..."
         multiline
-        onChangeText={text => setMessage(text)}
+        onChangeText={onInput}
         defaultValue={message}
       />
       <CustomButton icon="send" onPress={onSend} styles={styles.sendButton} />
