@@ -59,6 +59,7 @@ const ServerMemberList = observer(() => {
         )}
       {server && (
         <RoleItem
+          title="Offline"
           role={server.defaultRole}
           members={server.getOfflineMembers()}
         />
@@ -67,11 +68,15 @@ const ServerMemberList = observer(() => {
   );
 });
 
-const RoleItem = (props: {role: ServerRole; members: ServerMember[]}) => {
+const RoleItem = (props: {
+  title?: string;
+  role: ServerRole;
+  members: ServerMember[];
+}) => {
   return (
     <View style={styles.roleContainer}>
       <Text style={styles.roleTitle}>
-        {props.role.name} ({props.members.length})
+        {props.title || props.role.name} ({props.members.length})
       </Text>
       {props.members.map(member => (
         <MemberItem member={member} role={props.role} key={member.userId} />
