@@ -1,4 +1,4 @@
-import {makeAutoObservable, transaction} from 'mobx';
+import {makeAutoObservable} from 'mobx';
 import {RawInboxWithoutChannel} from './RawData';
 import {Store} from './store';
 
@@ -22,6 +22,22 @@ export class Inbox {
   get get() {
     return (channelId: string) =>
       this.cache[channelId] as InboxItem | undefined;
+  }
+  get notificationCount() {
+    let count = 0;
+
+    const mentionsArr = this.store.mentions.array;
+
+    for (let i = 0; i < mentionsArr.length; i++) {
+      const mention = mentionsArr[i];
+      const channel = this.store.channels.get(mention?.channelId!);
+      if (channel?.serverId) {
+        continue;
+      }
+      count += mention?.count || 0;
+    }
+
+    return count;
   }
 }
 

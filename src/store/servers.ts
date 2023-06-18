@@ -25,6 +25,12 @@ export class Servers {
     return (serverId: string) => this.cache[serverId] as Server | undefined;
   }
 
+  get hasNotifications() {
+    return !!this.store.channels.array.find(
+      c => c.serverId && c.hasNotifications(),
+    );
+  }
+
   get orderedArray() {
     const serverIdsArray = this.store.account.user?.orderedServerIds;
     const order: Record<string, number> = {};

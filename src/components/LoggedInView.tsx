@@ -17,6 +17,8 @@ import SettingsScreen from './SettingsScreen';
 
 import {ServerList, ServerPane} from './ServerView';
 import {InboxPane} from './InboxView';
+import FriendsScreen from './FriendsScreen';
+import {FriendStatus} from '../store/RawData';
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -118,7 +120,8 @@ export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
 export type LoggedInTabParamList = {
   Home: {serverId?: string};
-  Settings: {serverId?: string};
+  Friends: undefined;
+  Settings: {};
 };
 export type LoggedInTabRouteProp = RouteProp<LoggedInTabParamList, 'Home'>;
 export type LoggedInTabNavigationProp = NavigationProp<LoggedInTabParamList>;
@@ -132,13 +135,10 @@ const TabBar = observer((props: BottomTabBarProps) => {
   return (
     <View style={styles.tabBarContainer}>
       <View style={styles.tabBarInnerContainer}>
+        <InboxTabItem {...props} selected={selectedIndex === 0} />
+        <FriendsTabItem {...props} selected={selectedIndex === 1} />
         <TabBarItem
-          selected={selectedIndex === 0}
-          onPress={() => props.navigation.navigate('Home', {})}>
-          <Icon name="all-inbox" size={25} />
-        </TabBarItem>
-        <TabBarItem
-          selected={selectedIndex === 1}
+          selected={selectedIndex === 2}
           onPress={() => props.navigation.navigate('Settings', {})}>
           {account.user && <Avatar user={account.user} size={25} />}
         </TabBarItem>
@@ -147,14 +147,53 @@ const TabBar = observer((props: BottomTabBarProps) => {
   );
 });
 
+const InboxTabItem = observer(
+  (props: BottomTabBarProps & {selected: boolean}) => {
+    const {inbox, servers} = useStore();
+
+    const inboxNotificationCount = inbox.notificationCount;
+    const hasServerNotifications = servers.hasNotifications;
+
+    const hasNotifications = inboxNotificationCount || hasServerNotifications;
+
+    return (
+      <TabBarItem
+        alert={!!hasNotifications}
+        selected={!!hasNotifications || props.selected}
+        onPress={() => props.navigation.navigate('Home', {})}>
+        <Icon name="all-inbox" size={25} />
+      </TabBarItem>
+    );
+  },
+);
+
+const FriendsTabItem = observer(
+  (props: BottomTabBarProps & {selected: boolean}) => {
+    const {friends} = useStore();
+
+    const hasFriendRequest = !!friends.array.find(
+      f => f.status === FriendStatus.PENDING,
+    );
+    return (
+      <TabBarItem
+        alert={hasFriendRequest}
+        selected={hasFriendRequest || props.selected}
+        onPress={() => props.navigation.navigate('Friends')}>
+        <Icon name="group" size={25} />
+      </TabBarItem>
+    );
+  },
+);
 const TabBarItem = (props: {
   children?: React.JSX.Element | null;
   onPress?(): void;
   selected?: boolean;
+  alert?: boolean;
 }) => {
   return (
     <CustomPressable
       handlePosition="bottom"
+      handleColor={props.alert ? Colors.alertColor : undefined}
       selected={props.selected}
       onPress={props.onPress}>
       <View style={styles.tabBarItemContainer}>{props.children}</View>
@@ -169,6 +208,7 @@ export default function LoggedInView() {
       screenOptions={{headerShown: false}}
       detachInactiveScreens>
       <Tab.Screen name="Home" component={ServerScreen} />
+      <Tab.Screen name="Friends" component={FriendsScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
