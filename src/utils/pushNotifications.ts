@@ -1,8 +1,4 @@
-import notifee, {
-  AndroidBadgeIconType,
-  AndroidStyle,
-} from '@notifee/react-native';
-import env from './env';
+import notifee, {AndroidStyle, AndroidVisibility} from '@notifee/react-native';
 
 interface NotificationData {
   cUserId: string;
@@ -32,19 +28,26 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     name: 'Server Messages',
   });
 
-  // Display a notification
-  const notificationId = await notifee.displayNotification({
-    title: `${data.serverName} #${data.channelName}`,
-    body: 'Main body content of the notification',
-    subtitle: 'test',
-    android: {
-      circularLargeIcon: true,
+  const existingNotification = await notifee
+    .getDisplayedNotifications()
+    .then(res => res.find(n => n.notification.id === data.channelId));
 
+  const existingLines =
+    existingNotification?.notification?.android?.style?.lines || [];
+
+  // Display a notification
+  await notifee.displayNotification({
+    id: data.channelId,
+    title: `${data.serverName} #${data.channelName}`,
+    android: {
+      groupId: Math.random().toString(),
+      visibility: AndroidVisibility.PUBLIC,
+      circularLargeIcon: true,
       channelId,
       style: {
         type: AndroidStyle.INBOX,
         title: `${data.serverName} #${data.channelName}`,
-        lines: [`${data.cName}: ${data.content}`],
+        lines: [...existingLines, `${data.cName}: ${data.content}`],
       },
     },
   });

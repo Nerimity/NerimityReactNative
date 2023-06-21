@@ -30,7 +30,6 @@ import {showServerPushNotification} from '../utils/pushNotifications';
 async function onMessageReceived(
   message: FirebaseMessagingTypes.RemoteMessage,
 ) {
-  console.log('work pls??');
   showServerPushNotification(message.data as any);
 }
 
