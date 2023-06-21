@@ -36,7 +36,7 @@ const CustomInput = forwardRef<TextInput, Props>((props, ref) => {
         if (
           errorField
             .map(e => e.toLowerCase())
-            .includes(props.error.path.toLowerCase())
+            .includes(props.error?.path?.toLowerCase())
         ) {
           return props.error.message;
         }

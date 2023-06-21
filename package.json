@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@nerimity/nevula": "^0.12.3",
+    "@notifee/react-native": "^7.8.0",
+    "@react-native-firebase/app": "^18.0.0",
+    "@react-native-firebase/messaging": "^18.0.0",
     "@react-navigation/bottom-tabs": "^6.5.7",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",

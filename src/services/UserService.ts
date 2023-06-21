@@ -25,3 +25,13 @@ export async function openDMChannelRequest(userId: string) {
     useToken: true,
   });
 }
+
+export async function registerFCM(token: string) {
+  return request<undefined>({
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.user('register-fcm'),
+    body: {token},
+    method: 'POST',
+    useToken: true,
+    notJSON: true,
+  });
+}

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "833085928210",
+    "project_id": "nerimity",
+    "storage_bucket": "nerimity.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833085928210:android:beb58de92187e6270639cb",
+        "android_client_info": {
+          "package_name": "com.nerimityreactnative"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "833085928210-2ksk1asgbmqvsg6jb3es4asnmug2a4iu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0xgLDgosHpO-ceZjmWl2Fqnz5H1xJaRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "833085928210-2ksk1asgbmqvsg6jb3es4asnmug2a4iu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

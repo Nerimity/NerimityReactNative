@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {View, StyleSheet, StatusBar} from 'react-native';
 import {useStore} from '../store/store';
@@ -19,6 +19,32 @@ import {ServerList, ServerPane} from './ServerView';
 import {InboxPane} from './InboxView';
 import FriendsScreen from './FriendsScreen';
 import {FriendStatus} from '../store/RawData';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
+import {registerFCM} from '../services/UserService';
+import {showServerPushNotification} from '../utils/pushNotifications';
+
+// Note that an async function or a function that returns a Promise
+// is required for both subscribers.
+async function onMessageReceived(
+  message: FirebaseMessagingTypes.RemoteMessage,
+) {
+  console.log('work pls??');
+  showServerPushNotification(message.data as any);
+}
+
+messaging().onMessage(onMessageReceived);
+messaging().setBackgroundMessageHandler(onMessageReceived);
+
+async function setupFCM() {
+  // Register the device with FCM
+  await messaging().registerDeviceForRemoteMessages();
+
+  // Get the token
+  const token = await messaging().getToken();
+  await registerFCM(token);
+}
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -202,6 +228,10 @@ const TabBarItem = (props: {
 };
 
 export default function LoggedInView() {
+  useEffect(() => {
+    setupFCM();
+  }, []);
+
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
