@@ -5,6 +5,7 @@ import notifee, {
 } from '@notifee/react-native';
 import env from './env';
 import {getUserId} from './EncryptedStore';
+import {MessageType} from '../store/RawData';
 
 interface NotificationData {
   cUserId: string;
@@ -64,7 +65,22 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     (existingNotification?.notification?.android?.style as AndroidInboxStyle)
       ?.lines || [];
 
-  const newLine = `${data.cName}: ${data.content}`;
+  let newLine = `${data.cName}: ${data.content}`;
+
+  const type = parseInt(data.type);
+
+  if (type === MessageType.JOIN_SERVER) {
+    newLine = `${data.cName} has joined the server.`;
+  }
+  if (type === MessageType.LEAVE_SERVER) {
+    newLine = `${data.cName} has left the server.`;
+  }
+  if (type === MessageType.BAN_USER) {
+    newLine = `${data.cName} has been banned.`;
+  }
+  if (type === MessageType.KICK_USER) {
+    newLine = `${data.cName} has been kicked.`;
+  }
 
   // Display a notification
   await notifee.displayNotification({
