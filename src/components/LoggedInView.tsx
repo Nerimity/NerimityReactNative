@@ -23,14 +23,14 @@ import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import {registerFCM} from '../services/UserService';
-import {showServerPushNotification} from '../utils/pushNotifications';
+import {handlePushNotification} from '../utils/pushNotifications';
 
 // Note that an async function or a function that returns a Promise
 // is required for both subscribers.
 async function onMessageReceived(
   message: FirebaseMessagingTypes.RemoteMessage,
 ) {
-  showServerPushNotification(message.data as any);
+  handlePushNotification(message.data as any);
 }
 
 messaging().onMessage(onMessageReceived);

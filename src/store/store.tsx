@@ -8,11 +8,11 @@ import {Mentions} from './mentions';
 import {Users} from './users';
 import {ServerMembers} from './serverMembers';
 import {ServerRoles} from './serverRoles';
-import {removeUserToken} from '../utils/EncryptedStore';
 import {Friends} from './friends';
 import {Inbox} from './inbox';
 import {transaction} from 'mobx';
-
+import EncryptedStorage from 'react-native-encrypted-storage';
+import messaging from '@react-native-firebase/messaging';
 export class Store {
   socket: Socket;
   servers: Servers;
@@ -40,7 +40,8 @@ export class Store {
   }
   async logout() {
     this.socket.io.disconnect();
-    await removeUserToken();
+    await EncryptedStorage.clear();
+    await messaging().unregisterDeviceForRemoteMessages();
     transaction(() => {
       this.account.reset();
       this.users.reset();

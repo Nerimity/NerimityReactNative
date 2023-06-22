@@ -1,6 +1,6 @@
 import {makeAutoObservable} from 'mobx';
 import {Store} from './store';
-import {getUserToken} from '../utils/EncryptedStore';
+import {getUserToken, storeUserId} from '../utils/EncryptedStore';
 
 export interface SelfUser {
   id: string;
@@ -34,5 +34,6 @@ export class Account {
   }
   addSelfUser(newUser: SelfUser) {
     this.user = newUser;
+    storeUserId(newUser.id);
   }
 }
