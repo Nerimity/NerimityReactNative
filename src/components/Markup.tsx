@@ -23,7 +23,7 @@ interface MarkupProps {
   message?: Message;
   inline?: boolean;
   isQuote?: boolean;
-  afterComponent?: React.JSX.Element;
+  afterComponent?: React.JSX.Element | null;
 }
 
 type RenderContext = {
@@ -67,16 +67,15 @@ function transformCustomEntity(entity: CustomEntity, ctx: RenderContext) {
       break;
     }
     case 'q': {
-      // // quoted messages
-      // if (ctx.props.isQuote) {
-      //   return <QuoteMessageHidden />;
-      // }
+      if (ctx.props.isQuote) {
+        return <NestedQuote />;
+      }
       const quote = ctx.props.message?.quotedMessages?.find(m => m.id === expr);
 
       if (quote) {
         return <QuoteMessage message={ctx.props.message} quote={quote} />;
       }
-      return <Text>Invalid HANDLE ME</Text>;
+      return <InvalidQuote />;
 
       // return <QuoteMessageInvalid />;
     }
@@ -232,6 +231,13 @@ function MentionUser(props: {user: RawUser | User}) {
     </View>
   );
 }
+function NestedQuote() {
+  return (
+    <View style={styles.mention}>
+      <Text style={styles.nestedQuoteText}>Nested Quote</Text>
+    </View>
+  );
+}
 
 function QuoteMessage(props: {message: Message; quote: Partial<Message>}) {
   return (
@@ -243,6 +249,14 @@ function QuoteMessage(props: {message: Message; quote: Partial<Message>}) {
       <View style={{flexWrap: 'wrap', flex: 1}}>
         <Markup text={props.quote.content || ''} isQuote />
       </View>
+    </View>
+  );
+}
+
+function InvalidQuote() {
+  return (
+    <View style={styles.quoteContainer}>
+      <Text>Deleted Or Invalid Quote.</Text>
     </View>
   );
 }
@@ -263,7 +277,7 @@ const MarkupOuter = (props: MarkupProps) => {
   if (Array.isArray(output.props.children)) {
     for (let i = 0; i < output.props.children.length; i++) {
       let element = output.props.children[i];
-      if (element.type === QuoteMessage) {
+      if (element.type === QuoteMessage || element.type === InvalidQuote) {
         el.props.children?.length && newOutput.push(el);
         newOutput.push(element);
         el = createElement(Text, {}, []);
@@ -337,6 +351,10 @@ const styles = StyleSheet.create({
   },
   mentionText: {
     color: Colors.primaryColor,
+    fontSize: 12,
+  },
+  nestedQuoteText: {
+    color: '#ffffff80',
     fontSize: 12,
   },
   mentionChannelHash: {

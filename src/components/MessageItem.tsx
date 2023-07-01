@@ -81,7 +81,7 @@ const Content = observer((props: {message: RawMessage}) => {
       <Markup
         text={props.message.content || ''}
         message={props.message}
-        afterComponent={<MessageStatus message={props.message} />}
+        afterComponent={MessageStatus({message: props.message})}
       />
 
       <Embeds message={props.message} />
