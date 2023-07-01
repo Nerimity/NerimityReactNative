@@ -250,7 +250,7 @@ const TypingIndicator = () => {
         {typingUsers.length === 2 && (
           <Text>
             <B>{typingUsers[0]?.username}</B> and{' '}
-            <B>{typingUsers[0]?.username}</B> are typing...
+            <B>{typingUsers[1]?.username}</B> are typing...
           </Text>
         )}
         {typingUsers.length === 3 && (
