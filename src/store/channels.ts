@@ -151,9 +151,12 @@ export class Channel {
       }
     }
 
-    if (this.store.mentions.get(this.id)?.count) {
-      return true;
+    const hasMentions = this.store.mentions.get(this.id)?.count;
+
+    if (hasMentions) {
+      return 'mention' as const;
     }
+
     const lastMessagedAt = this.lastMessagedAt! || 0;
     const lastSeenAt = this.lastSeen! || 0;
     if (!lastSeenAt) {

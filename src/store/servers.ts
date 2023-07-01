@@ -1,5 +1,5 @@
 import {makeAutoObservable} from 'mobx';
-import {RawServer} from './RawData';
+import {ChannelType, RawServer, ServerNotificationPingMode} from './RawData';
 import {Store} from './store';
 import {computedFn} from 'mobx-utils';
 
@@ -26,9 +26,7 @@ export class Servers {
   }
 
   get hasNotifications() {
-    return !!this.store.channels.array.find(
-      c => c.serverId && c.hasNotifications(),
-    );
+    return !!this.array.find(s => s.hasNotifications);
   }
 
   get orderedArray() {
@@ -76,9 +74,23 @@ export class Server {
   }
 
   get hasNotifications() {
-    return this.store.channels
-      .getChannelsByServerId(this.id)
-      .find(channel => channel.hasNotifications());
+    const notificationPingMode = this.store.account.settingsByServerId(
+      this.id,
+    )?.notificationPingMode;
+    if (notificationPingMode === ServerNotificationPingMode.MUTE) {
+      return false;
+    }
+
+    return this.store.channels.getChannelsByServerId(this.id).some(channel => {
+      const hasNotification = channel.hasNotifications();
+      if (
+        hasNotification !== 'mention' &&
+        notificationPingMode === ServerNotificationPingMode.MENTIONS_ONLY
+      ) {
+        return false;
+      }
+      return hasNotification && channel?.type === ChannelType.SERVER_TEXT;
+    });
   }
 
   get avatarUrl() {

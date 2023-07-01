@@ -11,6 +11,7 @@ import {
   RawServer,
   RawServerMember,
   RawServerRole,
+  RawServerSettings,
   RawUser,
 } from './RawData';
 import {SelfUser} from './account';
@@ -20,6 +21,7 @@ interface AuthenticatedPayload {
   user: SelfUser;
   servers: RawServer[];
   serverMembers: RawServerMember[];
+  serverSettings: RawServerSettings[];
   messageMentions: MessageMention[];
   channels: RawChannel[];
   serverRoles: RawServerRole[];
@@ -116,6 +118,13 @@ class SocketEvents {
       for (let i = 0; i < payload.servers.length; i++) {
         const server = payload.servers[i];
         this.store.servers.addCache(server);
+      }
+      for (let i = 0; i < payload.serverSettings.length; i++) {
+        const serverSettings = payload.serverSettings[i];
+        this.store.account.addServerSettings(
+          serverSettings.serverId,
+          serverSettings,
+        );
       }
 
       for (let i = 0; i < payload.channels.length; i++) {

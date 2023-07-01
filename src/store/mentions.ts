@@ -1,5 +1,6 @@
 import {makeAutoObservable, remove as removeItem} from 'mobx';
 import {Store} from './store';
+import {ServerNotificationPingMode} from './RawData';
 
 export type Mention = {
   channelId: string;
@@ -20,6 +21,17 @@ export class Mentions {
   }
 
   set(channelId: string, mention: Mention) {
+    const channel = this.store.channels.get(channelId);
+
+    if (channel?.serverId) {
+      const notificationPingMode = this.store.account.settingsByServerId(
+        channel.serverId,
+      )?.notificationPingMode;
+      if (notificationPingMode === ServerNotificationPingMode.MUTE) {
+        return;
+      }
+    }
+
     this.cache[channelId] = mention;
   }
   remove(channelId: string) {

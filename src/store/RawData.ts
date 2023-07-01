@@ -13,6 +13,22 @@ export interface RawServer {
   customEmojis: RawCustomEmoji[];
 }
 
+export enum ServerNotificationSoundMode {
+  ALL = 0,
+  MENTIONS_ONLY = 1,
+  MUTE = 2,
+}
+export enum ServerNotificationPingMode {
+  ALL = 0,
+  MENTIONS_ONLY = 1,
+  MUTE = 2,
+}
+export interface RawServerSettings {
+  notificationSoundMode: ServerNotificationSoundMode;
+  notificationPingMode: ServerNotificationPingMode;
+  serverId: string;
+}
+
 export enum MessageType {
   CONTENT = 0,
   JOIN_SERVER = 1,
