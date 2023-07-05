@@ -89,8 +89,13 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     body: newLine,
     data: {
       selfUserId: selfUserId!,
+      channelId: data.channelId,
+      serverId: data.serverId,
     },
     android: {
+      pressAction: {
+        id: 'default',
+      },
       groupId: Math.random().toString(),
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,
@@ -141,8 +146,12 @@ export async function showDMNotificationData(data: DMNotificationData) {
     body: newLine,
     data: {
       selfUserId: selfUserId!,
+      channelId: data.channelId,
     },
     android: {
+      pressAction: {
+        id: 'default',
+      },
       groupId: Math.random().toString(),
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,

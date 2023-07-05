@@ -322,19 +322,19 @@ const CustomInput = () => {
   );
 };
 
-const PageHeader = () => {
+const PageHeader = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
   const nav = useNavigation<ChannelDetailsScreenNavigationProp>();
   const {channels} = useStore();
 
   const channel = channels.cache[route.params.channelId];
-  const name = channel?.name || channel.recipient?.username;
+  const name = channel?.name || channel?.recipient?.username;
   return (
     <Header
       title={name || '...'}
-      channelId={channel.id}
-      serverId={channel.serverId}
-      userId={channel.recipient?.id}
+      channelId={channel?.id}
+      serverId={channel?.serverId}
+      userId={channel?.recipient?.id}
       onPress={() =>
         nav.navigate('ChannelDetails', {
           channelId: channel.id,
@@ -343,7 +343,7 @@ const PageHeader = () => {
       }
     />
   );
-};
+});
 
 const styles = StyleSheet.create({
   pageContainer: {

@@ -1,5 +1,10 @@
 import React, {useEffect} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import {
+  CommonActions,
+  NavigationContainer,
+  NavigationContainerRef,
+  useNavigationContainerRef,
+} from '@react-navigation/native';
 
 import LoggedInView from './src/components/LoggedInView';
 import MessagesView from './src/components/MessagesView';
@@ -23,9 +28,12 @@ export type RootStackParamList = {
   ChannelDetails: {channelId: string; serverId?: string};
 };
 
+import notifee, {EventType} from '@notifee/react-native';
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): JSX.Element {
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
   useEffect(() => {
     const updateAlert = (release: Release) => {
       const onUpdateNow = () =>
@@ -73,9 +81,43 @@ function App(): JSX.Element {
     checkForUpdate();
   }, []);
 
+  const handleAppOpenedByNotificationPress = async () => {
+    const initialNotification = await notifee.getInitialNotification();
+    if (initialNotification?.notification) {
+      handleNotificationClick(initialNotification?.notification);
+    }
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    const serverId = notification?.data?.serverId;
+    const channelId = notification?.data?.channelId;
+    setTimeout(() => {
+      navigationRef.navigate('Main', {
+        serverId: serverId as string | undefined,
+      });
+      navigationRef.dispatch(
+        CommonActions.navigate('Home', {
+          serverId: serverId as string | undefined,
+        }),
+      );
+      navigationRef.navigate('Message', {
+        channelId: channelId as string,
+      });
+    }, 500);
+  };
+
+  useEffect(() => {
+    handleAppOpenedByNotificationPress();
+    return notifee.onForegroundEvent(({type, detail}) => {
+      if (type === EventType.PRESS) {
+        handleNotificationClick(detail.notification);
+      }
+    });
+  }, []);
+
   return (
     <StoreProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Splash"
           screenOptions={{headerShown: false}}>
