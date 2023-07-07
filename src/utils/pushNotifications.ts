@@ -149,7 +149,12 @@ export async function showDMNotificationData(data: DMNotificationData) {
     (existingNotification?.notification?.android?.style as AndroidInboxStyle)
       ?.lines || [];
 
-  const newLine = sanitize(data.content);
+  let newLine = sanitize(data.content);
+
+  // lets assume its an image message
+  if (!data.content) {
+    newLine = 'sent an image.';
+  }
 
   // Display a notification
   await notifee.displayNotification({
@@ -186,7 +191,10 @@ export async function showDMNotificationData(data: DMNotificationData) {
 //   }
 // });
 
-function sanitize(string: string) {
+function sanitize(string?: string) {
+  if (!string?.trim()) {
+    return '';
+  }
   const map = {
     '&': '&amp;',
     '<': '&lt;',
