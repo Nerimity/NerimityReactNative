@@ -65,28 +65,38 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     (existingNotification?.notification?.android?.style as AndroidInboxStyle)
       ?.lines || [];
 
-  let newLine = `${data.cName}: ${data.content}`;
+  const creatorName = sanitize(data.cName);
+
+  const username = `<b>${creatorName}:</b>`;
+  let content = data.content;
 
   const type = parseInt(data.type);
 
   if (type === MessageType.JOIN_SERVER) {
-    newLine = `${data.cName} has joined the server.`;
+    content = 'has joined the server.';
   }
   if (type === MessageType.LEAVE_SERVER) {
-    newLine = `${data.cName} has left the server.`;
+    content = 'has left the server.';
   }
   if (type === MessageType.BAN_USER) {
-    newLine = `${data.cName} has been banned.`;
+    content = 'has been banned.';
   }
   if (type === MessageType.KICK_USER) {
-    newLine = `${data.cName} has been kicked.`;
+    content = 'has been kicked.';
   }
+
+  // lets assume its an image message
+  if (!data.content) {
+    content = 'sent an image.';
+  }
+
+  let newLines = [username, content];
 
   // Display a notification
   await notifee.displayNotification({
     id: data.channelId,
-    title: `${data.serverName} #${data.channelName}`,
-    body: newLine,
+    title: `<b>${sanitize(data.serverName)} #${sanitize(data.channelName)}</b>`,
+    body: newLines.join(' '),
     data: {
       selfUserId: selfUserId!,
       channelId: data.channelId,
@@ -105,8 +115,10 @@ export async function showServerPushNotification(data: ServerNotificationData) {
         : undefined),
       style: {
         type: AndroidStyle.INBOX,
-        title: `${data.serverName} #${data.channelName}`,
-        lines: [...existingLines, newLine].slice(-5),
+        title: `<b>${sanitize(data.serverName)} #${sanitize(
+          data.channelName,
+        )}</b>`,
+        lines: [...existingLines, ...newLines].slice(-5),
       },
     },
   });
@@ -137,12 +149,12 @@ export async function showDMNotificationData(data: DMNotificationData) {
     (existingNotification?.notification?.android?.style as AndroidInboxStyle)
       ?.lines || [];
 
-  const newLine = data.content;
+  const newLine = sanitize(data.content);
 
   // Display a notification
   await notifee.displayNotification({
     id: data.channelId,
-    title: `@${data.cName}`,
+    title: `<b>@${sanitize(data.cName)}</b>`,
     body: newLine,
     data: {
       selfUserId: selfUserId!,
@@ -161,7 +173,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
         : undefined),
       style: {
         type: AndroidStyle.INBOX,
-        title: `@${data.cName}`,
+        title: `<b>@${sanitize(data.cName)}</b>`,
         lines: [...existingLines, newLine].slice(-5),
       },
     },
@@ -173,3 +185,16 @@ export async function showDMNotificationData(data: DMNotificationData) {
 //     // Update remote API
 //   }
 // });
+
+function sanitize(string: string) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  };
+  const reg = /[&<>"'/]/gi;
+  return string.replace(reg, match => map[match]);
+}
