@@ -61,21 +61,28 @@ const useChannelMessages = () => {
   return channelMessages;
 };
 
-export default function MessagesView() {
+export default observer(() => {
+  const {socket} = useStore();
+
   return (
     <View style={styles.pageContainer}>
       <StatusBar backgroundColor={Colors.paneColor} />
       <PageHeader />
-      <MessageList />
-      <InputArea />
+      {socket.isAuthenticated && (
+        <>
+          <MessageList />
+          <InputArea />
+        </>
+      )}
     </View>
   );
-}
+});
 
 const MessageList = observer(() => {
   const {channels} = useStore();
   const messages = useChannelMessages();
   const route = useRoute<MainScreenRouteProp>();
+  const navigation = useNavigation();
   const channel = channels.get(route.params.channelId);
 
   const channelMessages = messages?.slice();
@@ -84,6 +91,12 @@ const MessageList = observer(() => {
     lastSeenAt: number | null;
     messageId: string | null;
   }>({lastSeenAt: null, messageId: null});
+
+  useEffect(() => {
+    if (!channel) {
+      navigation.goBack();
+    }
+  }, [channel, navigation]);
 
   const updateUnreadMarker = useCallback(
     (ignoreFocus = false) => {

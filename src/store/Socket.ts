@@ -1,7 +1,7 @@
 import io, {Socket as IOSocket} from 'socket.io-client';
 import {Store} from './store';
 import {ClientEvents, ServerEvents} from './EventNames';
-import {transaction} from 'mobx';
+import {action, makeObservable, observable, transaction} from 'mobx';
 import {
   RawChannel,
   RawFriend,
@@ -44,6 +44,7 @@ export class Socket {
   io: IOSocket;
   store: Store;
   socketEvents: SocketEvents;
+  isAuthenticated: boolean = false;
   constructor(store: Store) {
     this.store = store;
     this.io = io('https://nerimity.com', {
@@ -51,6 +52,15 @@ export class Socket {
       autoConnect: false,
     });
     this.socketEvents = new SocketEvents(this.store, this.io);
+
+    makeObservable(this, {
+      isAuthenticated: observable,
+      setIsAuthenticated: action,
+    });
+  }
+
+  setIsAuthenticated(isAuthenticated: boolean) {
+    this.isAuthenticated = isAuthenticated;
   }
 
   connect() {
@@ -74,6 +84,7 @@ class SocketEvents {
 
     // register events
     this.io.on(ServerEvents.CONNECT, this.onConnect.bind(this));
+    this.io.on('disconnect', this.onDisconnect.bind(this));
     this.io.on(
       ServerEvents.USER_AUTHENTICATED,
       this.onAuthenticated.bind(this),
@@ -98,6 +109,9 @@ class SocketEvents {
   onConnect() {
     console.log('Authenticating...');
     this.io.emit(ClientEvents.AUTHENTICATE, {token: this.store.account.token});
+  }
+  onDisconnect() {
+    this.store.socket.setIsAuthenticated(false);
   }
   onAuthenticated(payload: AuthenticatedPayload) {
     console.log('Authenticated!');
@@ -170,6 +184,7 @@ class SocketEvents {
         this.store.channels.get(channelId)?.updateLastSeen(timestamp);
       }
     });
+    this.store.socket.setIsAuthenticated(true);
   }
   onMessageCreated(payload: {message: RawMessage; socketId?: string}) {
     if (payload.socketId === this.io.id) {

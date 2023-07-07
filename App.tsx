@@ -19,7 +19,7 @@ import {
   storeLastUpdateCheckedDate,
 } from './src/utils/EncryptedStore';
 import env from './src/utils/env';
-import {Alert, Linking} from 'react-native';
+import {Alert, AppState, Linking} from 'react-native';
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;

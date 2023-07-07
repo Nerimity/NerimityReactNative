@@ -71,23 +71,30 @@ const styles = StyleSheet.create({
 });
 
 export const ServerPane = (props: {serverId: string}) => {
-  const {servers, channels} = useStore();
-
-  const server = servers.cache[props.serverId];
   return (
     <>
-      <Header title={server?.name || '...'} />
-      <ServerChannelList
-        channels={channels.getSortedChannelsByServerId(server?.id)}
-      />
+      <ServerHeader serverId={props.serverId} />
+      <ServerChannelList serverId={props.serverId} />
     </>
   );
 };
 
-const ServerChannelList = observer((props: {channels: Channel[]}) => {
+const ServerHeader = observer((props: {serverId: string}) => {
+  const {servers} = useStore();
+
+  const server = servers.cache[props.serverId];
+
+  return <Header title={server?.name || '...'} />;
+});
+
+const ServerChannelList = observer((props: {serverId: string}) => {
+  const {channels} = useStore();
+
+  const serverChannels = channels.getSortedChannelsByServerId(props.serverId);
+
   return (
     <ScrollView style={styles.serverChannelListContainer}>
-      {props.channels.map(channel => {
+      {serverChannels.map(channel => {
         if (channel.categoryId) {
           return null;
         }
