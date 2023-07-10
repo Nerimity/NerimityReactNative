@@ -70,6 +70,11 @@ export async function showServerPushNotification(data: ServerNotificationData) {
   const username = `<b>${creatorName}:</b>`;
   let content = data.content;
 
+  // lets assume its an image message
+  if (!data.content) {
+    content = 'sent an image.';
+  }
+
   const type = parseInt(data.type);
 
   if (type === MessageType.JOIN_SERVER) {
@@ -83,11 +88,6 @@ export async function showServerPushNotification(data: ServerNotificationData) {
   }
   if (type === MessageType.KICK_USER) {
     content = 'has been kicked.';
-  }
-
-  // lets assume its an image message
-  if (!data.content) {
-    content = 'sent an image.';
   }
 
   let newLines = [username, content];
