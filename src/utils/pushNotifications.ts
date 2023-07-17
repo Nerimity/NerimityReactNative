@@ -89,6 +89,9 @@ export async function showServerPushNotification(data: ServerNotificationData) {
   if (type === MessageType.KICK_USER) {
     content = 'has been kicked.';
   }
+  if (type === MessageType.STARTED_CALL) {
+    content = 'has started a call.';
+  }
 
   let newLines = [username, content];
 
@@ -154,6 +157,11 @@ export async function showDMNotificationData(data: DMNotificationData) {
   // lets assume its an image message
   if (!data.content) {
     newLine = 'sent an image.';
+  }
+
+  const type = parseInt(data.type);
+  if (type === MessageType.STARTED_CALL) {
+    newLine = 'has started a call.';
   }
 
   // Display a notification
