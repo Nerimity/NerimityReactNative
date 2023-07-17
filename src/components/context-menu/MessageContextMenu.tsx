@@ -26,6 +26,7 @@ export function MessageContextMenu(props: {close: () => void, message: RawMessag
   }
 
   const items: ContextMenuOption[] = [
+    {separator: true},
     { icon: 'format-quote', title: 'Quote Message', onPress: onQuoteClick },
     { icon: 'delete', title: 'Delete Message', color: Colors.alertColor },
     {separator: true},
