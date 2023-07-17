@@ -2,6 +2,7 @@ import {makeAutoObservable, runInAction} from 'mobx';
 import {MessageType, RawMessage} from './RawData';
 import {Store} from './store';
 import {fetchMessages, postMessage} from '../services/MessageService';
+import { FileAttach } from './channelProperties';
 
 export enum MessageSentStatus {
   SENDING = 0,
@@ -36,12 +37,12 @@ export class Messages {
     runInAction(() => (this.cache[channelId] = messages.reverse()));
   }
 
-  async postMessage(channelId: string, content: string) {
+  async postMessage(channelId: string, content: string, fileAttach?: FileAttach) {
     const self = this.store.account.user!;
     const localMessage = this.addMessage(channelId, {
       id: `${Date.now()}-${Math.random()}`,
       channelId,
-      content,
+      content: fileAttach ? `${content || ""}\nUploading ${fileAttach.name}...`: content,
       createdAt: Date.now(),
       sentStatus: MessageSentStatus.SENDING,
       type: MessageType.CONTENT,
@@ -61,6 +62,7 @@ export class Messages {
       channelId,
       content,
       socketId: this.store.socket.io.id,
+      attachment: fileAttach
     }).catch(err => console.log(err));
     this.updateMessage(channelId, localMessage.id, {
       ...message,

@@ -13,6 +13,7 @@ import {Inbox} from './inbox';
 import {transaction} from 'mobx';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import messaging from '@react-native-firebase/messaging';
+import { ChannelProperties } from './channelProperties';
 export class Store {
   socket: Socket;
   servers: Servers;
@@ -25,6 +26,7 @@ export class Store {
   serverRoles: ServerRoles;
   friends: Friends;
   inbox: Inbox;
+  channelProperties: ChannelProperties;
   constructor() {
     this.account = new Account(this);
     this.users = new Users(this);
@@ -37,6 +39,7 @@ export class Store {
     this.friends = new Friends(this);
     this.inbox = new Inbox(this);
     this.socket = new Socket(this);
+    this.channelProperties = new ChannelProperties(this);
   }
   async logout() {
     this.socket.io.disconnect();
@@ -53,6 +56,7 @@ export class Store {
       this.mentions.reset();
       this.friends.reset();
       this.inbox.reset();
+      this.channelProperties.reset();
     });
   }
 }

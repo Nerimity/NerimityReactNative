@@ -1,4 +1,5 @@
 import {RawAttachment, RawMessage} from '../store/RawData';
+import { FileAttach } from '../store/channelProperties';
 import env from '../utils/env';
 import {request} from './Request';
 import Endpoints from './ServiceEndpoints';
@@ -45,7 +46,7 @@ interface PostMessageOpts {
   content?: string;
   channelId: string;
   socketId?: string;
-  // attachment?: File;
+  attachment?: FileAttach;
 }
 
 export const postMessage = async (opts: PostMessageOpts) => {
@@ -54,15 +55,19 @@ export const postMessage = async (opts: PostMessageOpts) => {
     ...(opts.socketId ? {socketId: opts.socketId} : {}),
   };
 
-  // if (opts.attachment) {
-  //   const fd = new FormData();
-  //   opts.content && fd.append('content', opts.content);
-  //   if (opts.socketId) {
-  //     fd.append('socketId', opts.socketId);
-  //   }
-  //   fd.append('attachment', opts.attachment);
-  //   body = fd;
-  // }
+  if (opts.attachment) {
+    const fd = new FormData();
+    opts.content && fd.append('content', opts.content);
+    if (opts.socketId) {
+      fd.append('socketId', opts.socketId);
+    }
+    fd.append('attachment', {
+      uri: opts.attachment.uri,
+      name: opts.attachment.name,
+      type: opts.attachment.type
+    });
+    body = fd;
+  }
 
   const data = await request<RawMessage>({
     method: 'POST',

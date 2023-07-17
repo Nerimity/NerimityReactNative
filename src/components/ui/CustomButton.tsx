@@ -11,6 +11,7 @@ interface CustomButtonProps {
   padding?: number;
   margin?: number;
   styles?: StyleProp<ViewStyle>;
+  color?: string;
 }
 
 export default function CustomButton(props: CustomButtonProps) {
@@ -29,9 +30,9 @@ export default function CustomButton(props: CustomButtonProps) {
             props.styles,
           ]}>
           {props.icon && (
-            <Icon color={Colors.primaryColor} name={props.icon} size={20} />
+            <Icon color={props.color || Colors.primaryColor} name={props.icon} size={20} />
           )}
-          {props.title && <Text style={styles.text}>{props.title}</Text>}
+          {props.title && <Text style={{...styles.text, color: props.color || Colors.primaryColor}}>{props.title}</Text>}
         </View>
       </CustomPressable>
     </View>
@@ -49,7 +50,5 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderColor: 'rgba(255,255,255,0.2)',
   },
-  text: {
-    color: Colors.primaryColor,
-  },
+  text: {},
 });
