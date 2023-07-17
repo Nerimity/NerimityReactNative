@@ -46,7 +46,7 @@ export default React.memo(
 
     const onPress = () => {
       if (props.preview) return;
-      createPortal(close => <MessageContextMenu message={props.item} close={close}  />, 'message-context-menu')
+      createPortal(close => <MessageContextMenu serverId={props.serverId} message={props.item} close={close}  />, 'message-context-menu')
     }
 
     const onLongPress = () => {
