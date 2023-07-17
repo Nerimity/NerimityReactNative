@@ -26,11 +26,10 @@ export class ChannelProperties {
     this.cache = {};
   }
   get get() {
-    return (channelId: string) => this.cache[channelId];
+    return (channelId: string) => this.cache[channelId] as ChannelProperty | undefined;
   }
   initChannelProperty(channelId: string) {
     if (this.cache[channelId]) return;
-    console.log(channelId)
     const channelProperty = new ChannelProperty(this.store, {
       content: '',
     });

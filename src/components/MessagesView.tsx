@@ -40,6 +40,7 @@ import { ServerEvents } from '../store/EventNames';
 import { postChannelTyping } from '../services/MessageService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { CustomPortalProvider } from '../utils/CustomPortal';
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
@@ -69,16 +70,18 @@ export default observer(() => {
   const { socket } = useStore();
 
   return (
-    <View style={styles.pageContainer}>
-      <StatusBar backgroundColor={Colors.paneColor} />
-      <PageHeader />
-      {socket.isAuthenticated && (
-        <>
-          <MessageList />
-          <InputArea />
-        </>
-      )}
-    </View>
+    <CustomPortalProvider>
+      <View style={styles.pageContainer}>
+        <StatusBar backgroundColor={Colors.paneColor} />
+        <PageHeader />
+        {socket.isAuthenticated && (
+          <>
+            <MessageList />
+            <InputArea />
+          </>
+        )}
+      </View>
+    </CustomPortalProvider>
   );
 });
 
@@ -137,6 +140,7 @@ const MessageList = observer(() => {
 
   return (
     <FlashList
+      keyboardShouldPersistTaps="handled"
       data={channelMessages || []}
       estimatedItemSize={53}
       contentContainerStyle={styles.flashListContentContainer}
@@ -298,14 +302,14 @@ const FloatingAttachment = observer(() => {
   if (!attachment) return null;
 
   return (
-    <Floating offsetTop={-50} style={{right: 10}}>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+    <Floating offsetTop={-50} style={{ right: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Icon name='attach-file' size={20} />
-        <Image source={{uri: attachment.uri, width: 50, height: 50}} resizeMode='contain'  />
-        <Text numberOfLines={1} style={{flex: 1}}>{attachment.name}</Text>
+        <Image source={{ uri: attachment.uri, width: 50, height: 50 }} resizeMode='contain' />
+        <Text numberOfLines={1} style={{ flex: 1 }}>{attachment.name}</Text>
       </View>
     </Floating>
-  );  
+  );
 });
 
 const B = (props: { children?: string }) => (
@@ -317,8 +321,7 @@ const Floating = (props: {
   offsetTop?: number;
   style?: any
 }) => {
- 
-  return <View style={{...styles.floating, ...props.style, top: props.offsetTop || -10}} children={props.children} />;
+  return <View style={{ ...styles.floating, ...props.style, top: props.offsetTop || -10 }} children={props.children} />;
 };
 
 const CustomInput = observer(() => {
@@ -329,22 +332,22 @@ const CustomInput = observer(() => {
   const channelProperty = channelProperties.get(route.params.channelId);
 
   const onSend = useCallback(() => {
-    const content = channelProperty.content || "";
+    const content = channelProperty?.content || "";
     const formattedMessage = content.trim();
-    channelProperty.setContent('');
-    if (!formattedMessage.length && !channelProperty.attachment) {
+    channelProperty?.setContent('');
+    if (!formattedMessage.length && !channelProperty?.attachment) {
       return;
     }
     startTransition(() => {
-      messages.postMessage(route.params.channelId, formattedMessage, channelProperty.attachment);
+      messages.postMessage(route.params.channelId, formattedMessage, channelProperty?.attachment);
     });
-    channelProperty.setAttachment(undefined);
+    channelProperty?.setAttachment(undefined);
     typingTimeoutId && clearTimeout(typingTimeoutId);
     setTypingTimeoutId(null);
   }, [messages, route.params.channelId, typingTimeoutId]);
 
   const onInput = (text: string) => {
-    channelProperty.setContent(text);
+    channelProperty?.setContent(text);
     if (typingTimeoutId) {
       return;
     }
@@ -364,7 +367,7 @@ const CustomInput = observer(() => {
     if (response.errorMessage) return;
     const asset = response.assets?.[0];
     if (!asset) return;
-    channelProperty.setAttachment({
+    channelProperty?.setAttachment({
       name: asset.fileName!,
       uri: asset.uri!,
       type: asset.type!,
@@ -372,7 +375,7 @@ const CustomInput = observer(() => {
   }
 
   const onAttachRemove = () => {
-    channelProperty.setAttachment(undefined);
+    channelProperty?.setAttachment(undefined);
   }
 
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, ToastAndroid, Vibration, View} from 'react-native';
 import {MessageType, RawAttachment, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
@@ -11,19 +11,24 @@ import Markup from './Markup';
 import FastImage from 'react-native-fast-image';
 import {useWindowDimensions} from 'react-native';
 import env from '../utils/env';
+import { useCustomPortal } from '../utils/CustomPortal';
+import { ContextMenu } from './ui/ContextMenu';
+import { MessageContextMenu } from './context-menu/MessageContextMenu';
 
 interface MessageItemProps {
   item: RawMessage;
-  index: number;
+  index?: number;
   serverId?: string;
+  preview?: boolean;
 }
 
 export default React.memo(
   function MessageItem(props: MessageItemProps) {
-    const {messages} = useStore();
+    const {createPortal} = useCustomPortal();
+    const {messages, channelProperties} = useStore();
     const channelMessages = messages.cache[props.item.channelId];
 
-    const beforeMessage = channelMessages[props.index + 1];
+    const beforeMessage = props.index !== undefined ? channelMessages[props.index + 1] : undefined;
 
     const currentTime = props.item.createdAt;
     const beforeMessageTime = beforeMessage?.createdAt!;
@@ -39,10 +44,27 @@ export default React.memo(
     const isCompact =
       isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
 
+    const onPress = () => {
+      if (props.preview) return;
+      createPortal(close => <MessageContextMenu message={props.item} close={close}  />, 'message-context-menu')
+    }
+
+    const onLongPress = () => {
+      if (props.preview) return;
+      if (props.item.type !== MessageType.CONTENT) return;
+      Vibration.vibrate(50)
+      ToastAndroid.show("Message Quoted.", ToastAndroid.SHORT);
+      const properties = channelProperties.get(props.item.channelId);
+      properties?.setContent(properties?.content + `[q:${props.item.id}]`)
+    }
+
     return (
       <Pressable
         unstable_pressDelay={100}
         android_ripple={{color: 'gray'}}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={600}
         style={[
           styles.messageItemContainer,
           isCompact ? styles.compactMessageItemContainer : undefined,
@@ -50,7 +72,7 @@ export default React.memo(
         {!isCompact && <Avatar size={35} user={props.item.createdBy} />}
         <View style={styles.messageInnerContainer}>
           {!isCompact && <Details {...props} />}
-          <Content message={props.item} />
+          <Content message={props.item} preview={props.preview} />
         </View>
       </Pressable>
     );
@@ -75,7 +97,7 @@ const Details = observer((props: MessageItemProps) => {
   );
 });
 
-const Content = observer((props: {message: RawMessage}) => {
+const Content = observer((props: {message: RawMessage, preview?: boolean}) => {
   return (
     <View style={{width: '100%'}}>
       <Markup
@@ -84,7 +106,7 @@ const Content = observer((props: {message: RawMessage}) => {
         afterComponent={MessageStatus({message: props.message})}
       />
 
-      <Embeds message={props.message} />
+      <Embeds message={props.message} preview={props.preview} />
     </View>
   );
 });
@@ -107,13 +129,14 @@ const MessageStatus = (props: {message: Message}) => {
   return null;
 };
 
-const Embeds = (props: {message: Message}) => {
+const Embeds = (props: {message: Message, preview?: boolean;}) => {
   return (
     <>
       {!!props.message?.attachments?.length && (
         <ImageEmbed
           attachment={props.message.attachments[0]}
           widthOffset={-65}
+          maxHeight={props.preview ? 100 : undefined}
         />
       )}
     </>
@@ -122,6 +145,7 @@ const Embeds = (props: {message: Message}) => {
 const ImageEmbed = (props: {
   attachment: RawAttachment;
   widthOffset?: number;
+  maxHeight?: number;
 }) => {
   const {width, height} = useWindowDimensions();
 
@@ -131,7 +155,7 @@ const ImageEmbed = (props: {
     props.attachment.width!,
     props.attachment.height!,
     maxWidth,
-    height / 2,
+    props.maxHeight ? props.maxHeight :  height / 2,
   );
   return (
     <FastImage
