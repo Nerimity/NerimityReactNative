@@ -6,13 +6,17 @@ import {
   useNavigationContainerRef,
 } from '@react-navigation/native';
 
-import LoggedInView from './src/components/LoggedInView';
-import MessagesView from './src/components/MessagesView';
 import {StoreProvider} from './src/store/store';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import ChannelDetailsView from './src/components/ChannelDetailsView';
-import LoginView from './src/components/LoginView';
+
+
 import SplashScreen from './src/components/SplashScreen';
+const LoginView = React.lazy(() => import('./src/components/LoginView'));
+const ChannelDetailsView = React.lazy(() => import('./src/components/ChannelDetailsView'));
+const MessagesView = React.lazy(() => import('./src/components/MessagesView'));
+const LoggedInView = React.lazy(() => import('./src/components/LoggedInView'));
+
+
 import {Release, getLatestRelease} from './src/utils/githubApi';
 import {
   getLastUpdateCheckedDate,
