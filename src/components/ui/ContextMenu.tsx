@@ -3,6 +3,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import Colors from "./Colors";
 import CustomPressable from "./CustomPressable";
+import { useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 
 export interface ContextMenuOption {
@@ -14,7 +16,18 @@ export interface ContextMenuOption {
 }
 
 export function ContextMenu(props: { header?: JSX.Element, close: () => void, items: ContextMenuOption[] }) {
-  const {height} = useWindowDimensions();
+  const { height } = useWindowDimensions();
+  const navigation = useNavigation();
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+        props.close();
+        e.preventDefault()
+      }),
+    [navigation]
+  );
+
 
   const onPress = (item: ContextMenuOption) => {
     item?.onPress?.(item);
@@ -22,17 +35,17 @@ export function ContextMenu(props: { header?: JSX.Element, close: () => void, it
   }
   return (
     <Pressable style={styles.backdrop} onPress={props.close}>
-      <ScrollView keyboardShouldPersistTaps="handled" style={{...styles.scrollViewContainer, maxHeight: height / 2}}>
+      <ScrollView keyboardShouldPersistTaps="handled" style={{ ...styles.scrollViewContainer, maxHeight: height / 2 }}>
         {props.header}
         <View style={styles.contextMenuContainer}>
           {props.items.map((item, i) => (
-            <ContextItem 
-              key={i} 
-              title={item.title} 
-              color={item.color} 
-              icon={item.icon} 
+            <ContextItem
+              key={i}
+              title={item.title}
+              color={item.color}
+              icon={item.icon}
               separator={item.separator}
-              onPress={() => onPress(item)} 
+              onPress={() => onPress(item)}
             />
           ))}
         </View>
