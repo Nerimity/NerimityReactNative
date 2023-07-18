@@ -30,8 +30,8 @@ export function ContextMenu(props: { header?: JSX.Element, close: () => void, it
 
 
   const onPress = (item: ContextMenuOption) => {
-    item?.onPress?.(item);
     props.close();
+    item?.onPress?.(item);
   }
   return (
     <Pressable style={styles.backdrop} onPress={props.close}>
