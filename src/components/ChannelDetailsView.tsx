@@ -34,7 +34,14 @@ const PageHeader = () => {
 
   const memberCount = serverMembers.array(route.params?.serverId!).length;
 
-  return <Header title={memberCount + ' members'} />;
+  return (
+    <Header
+      showGoBack
+      channelId={route.params.channelId}
+      serverId={route.params.serverId}
+      title={memberCount + ' members'}
+    />
+  );
 };
 
 const ServerMemberList = observer(() => {

@@ -10,6 +10,8 @@ import {useStore} from '../../store/store';
 import Avatar from './Avatar';
 import UserPresence from '../UserPresence';
 import {observer} from 'mobx-react-lite';
+import CustomButton from './CustomButton';
+import {useNavigation} from '@react-navigation/native';
 
 export default observer(
   (props: {
@@ -17,6 +19,7 @@ export default observer(
     icon?: string;
     userId?: string;
     serverId?: string;
+    showGoBack?: boolean;
     channelId?: string;
     onPress?(event: GestureResponderEvent): void;
   }) => {
@@ -40,9 +43,18 @@ export default observer(
       return '...';
     };
 
+    const navigation = useNavigation();
+
     return (
       <Pressable style={styles.header} onPress={props.onPress}>
         <View style={styles.innerHeader}>
+          {(userOrServer || props.showGoBack) && (
+            <CustomButton
+              padding={5}
+              icon="arrow-back"
+              onPress={navigation.goBack}
+            />
+          )}
           {userOrServer && <Avatar size={30} server={server} user={user} />}
           <View style={styles.details}>
             <Text numberOfLines={1} style={styles.headerText}>

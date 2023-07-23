@@ -25,28 +25,28 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { RootStackParamList } from '../../App';
-import { useStore } from '../store/store';
-import { observer } from 'mobx-react-lite';
+import {RootStackParamList} from '../../App';
+import {useStore} from '../store/store';
+import {observer} from 'mobx-react-lite';
 import MessageItem from './MessageItem';
 
 import CustomButton from './ui/CustomButton';
 import Header from './ui/Header';
 import Colors from './ui/Colors';
-import { FlashList } from '@shopify/flash-list';
-import { ChannelDetailsScreenNavigationProp } from './ChannelDetailsView';
-import { RawMessage } from '../store/RawData';
-import { ServerEvents } from '../store/EventNames';
-import { postChannelTyping } from '../services/MessageService';
+import {FlashList} from '@shopify/flash-list';
+import {ChannelDetailsScreenNavigationProp} from './ChannelDetailsView';
+import {RawMessage} from '../store/RawData';
+import {ServerEvents} from '../store/EventNames';
+import {postChannelTyping} from '../services/MessageService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { CustomPortalProvider } from '../utils/CustomPortal';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {CustomPortalProvider} from '../utils/CustomPortal';
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
 const useChannelMessages = () => {
   const route = useRoute<MainScreenRouteProp>();
-  const { messages, channels } = useStore();
+  const {messages, channels} = useStore();
   const channel = channels.get(route.params.channelId);
   const channelMessages = messages.channelMessages(route.params.channelId);
 
@@ -67,7 +67,7 @@ const useChannelMessages = () => {
 };
 
 export default observer(() => {
-  const { socket } = useStore();
+  const {socket} = useStore();
 
   return (
     <CustomPortalProvider>
@@ -86,7 +86,7 @@ export default observer(() => {
 });
 
 const MessageList = observer(() => {
-  const { channels, channelProperties } = useStore();
+  const {channels, channelProperties} = useStore();
   const messages = useChannelMessages();
   const route = useRoute<MainScreenRouteProp>();
   const navigation = useNavigation();
@@ -97,14 +97,14 @@ const MessageList = observer(() => {
   const [unreadMarker, setUnreadMarker] = useState<{
     lastSeenAt: number | null;
     messageId: string | null;
-  }>({ lastSeenAt: null, messageId: null });
+  }>({lastSeenAt: null, messageId: null});
 
   useEffect(() => {
     if (!channel) {
       navigation.goBack();
       return;
     }
-    channelProperties.initChannelProperty(channel.id)
+    channelProperties.initChannelProperty(channel.id);
   }, [channel, navigation]);
 
   const updateUnreadMarker = useCallback(
@@ -193,7 +193,7 @@ interface TypingPayload {
 
 const TypingIndicator = () => {
   const route = useRoute<MainScreenRouteProp>();
-  const { socket, users } = useStore();
+  const {socket, users} = useStore();
   const [typingUserIds, setTypingUserIds] = useState<
     Record<string, number | undefined>
   >({});
@@ -209,19 +209,19 @@ const TypingIndicator = () => {
       const timeoutId = setTimeout(
         () =>
           setTypingUserIds(current => {
-            const copy = { ...current };
+            const copy = {...current};
             delete copy[event.userId];
             return copy;
           }),
         5000,
       );
-      setTypingUserIds({ ...typingUserIds, [event.userId]: timeoutId });
+      setTypingUserIds({...typingUserIds, [event.userId]: timeoutId});
     },
     [route.params.channelId, typingUserIds],
   );
 
   const onMessageCreated = useCallback(
-    (event: { message: RawMessage }) => {
+    (event: {message: RawMessage}) => {
       if (event.message.channelId !== route.params.channelId) {
         return;
       }
@@ -229,7 +229,7 @@ const TypingIndicator = () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
         setTypingUserIds(current => {
-          const copy = { ...current };
+          const copy = {...current};
           delete copy[event.message.createdBy.id];
           return copy;
         });
@@ -238,7 +238,7 @@ const TypingIndicator = () => {
     [route.params.channelId, typingUserIds],
   );
   const onMessageUpdated = useCallback(
-    (evt: any) => onMessageCreated({ message: evt.updated }),
+    (evt: any) => onMessageCreated({message: evt.updated}),
     [onMessageCreated],
   );
 
@@ -297,49 +297,65 @@ const TypingIndicator = () => {
 
 const FloatingAttachment = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
-  const { channelProperties } = useStore();
+  const {channelProperties} = useStore();
   const attachment = channelProperties.get(route.params.channelId)?.attachment;
-  if (!attachment) return null;
+  if (!attachment) {
+    return null;
+  }
 
   return (
-    <Floating offsetTop={-50} style={{ right: 10 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Icon name='attach-file' size={20} />
-        <Image source={{ uri: attachment.uri, width: 50, height: 50 }} resizeMode='contain' />
-        <Text numberOfLines={1} style={{ flex: 1 }}>{attachment.name}</Text>
+    <Floating offsetTop={-50} style={{right: 10}}>
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Icon name="attach-file" size={20} />
+        <Image
+          source={{uri: attachment.uri, width: 50, height: 50}}
+          resizeMode="contain"
+        />
+        <Text numberOfLines={1} style={{flex: 1}}>
+          {attachment.name}
+        </Text>
       </View>
     </Floating>
   );
 });
 
-const B = (props: { children?: string }) => (
+const B = (props: {children?: string}) => (
   <Text style={styles.b} children={props.children} />
 );
 
 const Floating = (props: {
   children: React.JSX.Element | React.JSX.Element[];
   offsetTop?: number;
-  style?: any
+  style?: any;
 }) => {
-  return <View style={{ ...styles.floating, ...props.style, top: props.offsetTop || -10 }} children={props.children} />;
+  return (
+    <View
+      style={{...styles.floating, ...props.style, top: props.offsetTop || -10}}
+      children={props.children}
+    />
+  );
 };
 
 const CustomInput = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
-  const { messages, channelProperties } = useStore();
+  const {messages, channelProperties} = useStore();
   const [typingTimeoutId, setTypingTimeoutId] = useState<null | number>(null);
 
   const channelProperty = channelProperties.get(route.params.channelId);
 
   const onSend = useCallback(() => {
-    const content = channelProperty?.content || "";
+    const content = channelProperty?.content || '';
     const formattedMessage = content.trim();
     channelProperty?.setContent('');
     if (!formattedMessage.length && !channelProperty?.attachment) {
       return;
     }
     startTransition(() => {
-      messages.postMessage(route.params.channelId, formattedMessage, channelProperty?.attachment);
+      messages.postMessage(
+        route.params.channelId,
+        formattedMessage,
+        channelProperty?.attachment,
+      );
     });
     channelProperty?.setAttachment(undefined);
     typingTimeoutId && clearTimeout(typingTimeoutId);
@@ -361,33 +377,52 @@ const CustomInput = observer(() => {
       mediaType: 'photo',
       includeExtra: false,
       selectionLimit: 1,
-      presentationStyle: 'popover'
-    })
-    if (response.didCancel) return;
-    if (response.errorMessage) return;
+      presentationStyle: 'popover',
+    });
+    if (response.didCancel) {
+      return;
+    }
+    if (response.errorMessage) {
+      return;
+    }
     const asset = response.assets?.[0];
-    if (!asset) return;
+    if (!asset) {
+      return;
+    }
     channelProperty?.setAttachment({
       name: asset.fileName!,
       uri: asset.uri!,
       type: asset.type!,
-    })
-  }
+    });
+  };
 
   const onAttachRemove = () => {
     channelProperty?.setAttachment(undefined);
-  }
+  };
 
   return (
     <View style={styles.customInputContainer}>
-      {!channelProperty?.attachment && <CustomButton icon="attach-file" onPress={onAttach} styles={styles.inputButton} />}
-      {channelProperty?.attachment && <CustomButton color={Colors.alertColor} icon="close" onPress={onAttachRemove} styles={styles.inputButton} />}
+      {!channelProperty?.attachment && (
+        <CustomButton
+          icon="attach-file"
+          onPress={onAttach}
+          styles={styles.inputButton}
+        />
+      )}
+      {channelProperty?.attachment && (
+        <CustomButton
+          color={Colors.alertColor}
+          icon="close"
+          onPress={onAttachRemove}
+          styles={styles.inputButton}
+        />
+      )}
       <TextInput
         style={styles.customInput}
         placeholder="Message..."
         multiline
         onChangeText={onInput}
-        defaultValue={channelProperty?.content || ""}
+        defaultValue={channelProperty?.content || ''}
       />
       <CustomButton icon="send" onPress={onSend} styles={styles.inputButton} />
     </View>
@@ -397,7 +432,7 @@ const CustomInput = observer(() => {
 const PageHeader = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
   const nav = useNavigation<ChannelDetailsScreenNavigationProp>();
-  const { channels } = useStore();
+  const {channels} = useStore();
 
   const channel = channels.cache[route.params.channelId];
   const name = channel?.name || channel?.recipient?.username;
@@ -439,7 +474,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
 
     alignItems: 'flex-end',
-    gap: 5
+    gap: 5,
   },
   customInput: {
     flex: 1,
@@ -448,7 +483,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
   },
-  b: { fontWeight: 'bold' },
+  b: {fontWeight: 'bold'},
   floating: {
     position: 'absolute',
     zIndex: 1111,
