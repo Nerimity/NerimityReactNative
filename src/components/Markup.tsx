@@ -223,7 +223,7 @@ function MentionChannel(props: {channel: Channel}) {
   );
 }
 
-function MentionUser(props: {user: RawUser | User}) {
+export function MentionUser(props: {user: RawUser | User}) {
   return (
     <View style={styles.mention}>
       <Avatar user={props.user} size={16} />

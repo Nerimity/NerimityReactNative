@@ -1,5 +1,12 @@
 import React from 'react';
-import {Pressable, StyleSheet, Text, ToastAndroid, Vibration, View} from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  Vibration,
+  View,
+} from 'react-native';
 import {MessageType, RawAttachment, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
@@ -7,13 +14,13 @@ import {useStore} from '../store/store';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {observer} from 'mobx-react-lite';
 import {Message, MessageSentStatus} from '../store/messages';
-import Markup from './Markup';
+import Markup, {MentionUser} from './Markup';
 import FastImage from 'react-native-fast-image';
 import {useWindowDimensions} from 'react-native';
 import env from '../utils/env';
-import { useCustomPortal } from '../utils/CustomPortal';
-import { ContextMenu } from './ui/ContextMenu';
-import { MessageContextMenu } from './context-menu/MessageContextMenu';
+import {useCustomPortal} from '../utils/CustomPortal';
+import {MessageContextMenu} from './context-menu/MessageContextMenu';
+import Colors from './ui/Colors';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -28,7 +35,8 @@ export default React.memo(
     const {messages, channelProperties} = useStore();
     const channelMessages = messages.cache[props.item.channelId];
 
-    const beforeMessage = props.index !== undefined ? channelMessages[props.index + 1] : undefined;
+    const beforeMessage =
+      props.index !== undefined ? channelMessages[props.index + 1] : undefined;
 
     const currentTime = props.item.createdAt;
     const beforeMessageTime = beforeMessage?.createdAt!;
@@ -44,19 +52,36 @@ export default React.memo(
     const isCompact =
       isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
 
+    const isSystemMessage = props.item.type !== MessageType.CONTENT;
+
     const onPress = () => {
-      if (props.preview) return;
-      createPortal(close => <MessageContextMenu serverId={props.serverId} message={props.item} close={close}  />, 'message-context-menu')
-    }
+      if (props.preview) {
+        return;
+      }
+      createPortal(
+        close => (
+          <MessageContextMenu
+            serverId={props.serverId}
+            message={props.item}
+            close={close}
+          />
+        ),
+        'message-context-menu',
+      );
+    };
 
     const onLongPress = () => {
-      if (props.preview) return;
-      if (props.item.type !== MessageType.CONTENT) return;
-      Vibration.vibrate(50)
-      ToastAndroid.show("Message Quoted.", ToastAndroid.SHORT);
+      if (props.preview) {
+        return;
+      }
+      if (props.item.type !== MessageType.CONTENT) {
+        return;
+      }
+      Vibration.vibrate(50);
+      ToastAndroid.show('Message Quoted.', ToastAndroid.SHORT);
       const properties = channelProperties.get(props.item.channelId);
-      properties?.setContent(properties?.content + `[q:${props.item.id}]`)
-    }
+      properties?.setContent(properties?.content + `[q:${props.item.id}]`);
+    };
 
     return (
       <Pressable
@@ -69,11 +94,17 @@ export default React.memo(
           styles.messageItemContainer,
           isCompact ? styles.compactMessageItemContainer : undefined,
         ]}>
-        {!isCompact && <Avatar size={35} user={props.item.createdBy} />}
-        <View style={styles.messageInnerContainer}>
-          {!isCompact && <Details {...props} />}
-          <Content message={props.item} preview={props.preview} />
-        </View>
+        {isSystemMessage ? (
+          <SystemMessage message={props.item} />
+        ) : (
+          <>
+            {!isCompact && <Avatar size={35} user={props.item.createdBy} />}
+            <View style={styles.messageInnerContainer}>
+              {!isCompact && <Details {...props} />}
+              <Content message={props.item} preview={props.preview} />
+            </View>
+          </>
+        )}
       </Pressable>
     );
   },
@@ -97,7 +128,7 @@ const Details = observer((props: MessageItemProps) => {
   );
 });
 
-const Content = observer((props: {message: RawMessage, preview?: boolean}) => {
+const Content = observer((props: {message: RawMessage; preview?: boolean}) => {
   return (
     <View style={{width: '100%'}}>
       <Markup
@@ -129,7 +160,7 @@ const MessageStatus = (props: {message: Message}) => {
   return null;
 };
 
-const Embeds = (props: {message: Message, preview?: boolean;}) => {
+const Embeds = (props: {message: Message; preview?: boolean}) => {
   return (
     <>
       {!!props.message?.attachments?.length && (
@@ -155,7 +186,7 @@ const ImageEmbed = (props: {
     props.attachment.width!,
     props.attachment.height!,
     maxWidth,
-    props.maxHeight ? props.maxHeight :  height / 2,
+    props.maxHeight ? props.maxHeight : height / 2,
   );
   return (
     <FastImage
@@ -166,6 +197,58 @@ const ImageEmbed = (props: {
       }}
       resizeMode="contain"
     />
+  );
+};
+
+const SystemMessage = (props: {message: RawMessage}) => {
+  const systemMessage = (() => {
+    switch (props.message.type) {
+      case MessageType.JOIN_SERVER:
+        return {
+          icon: 'login',
+          color: Colors.primaryColor,
+          message: 'has joined the server.',
+        };
+      case MessageType.LEAVE_SERVER:
+        return {
+          icon: 'logout',
+          color: Colors.alertColor,
+          message: 'has left the server.',
+        };
+      case MessageType.KICK_USER:
+        return {
+          icon: 'logout',
+          color: Colors.alertColor,
+          message: 'has been kicked.',
+        };
+      case MessageType.BAN_USER:
+        return {
+          icon: 'block',
+          color: Colors.alertColor,
+          message: 'has been banned.',
+        };
+      case MessageType.STARTED_CALL:
+        return {
+          icon: 'call',
+          color: Colors.successColor,
+          message: 'started a call.',
+        };
+      default:
+        return undefined;
+    }
+  })();
+
+  if (!systemMessage) {
+    return null;
+  }
+
+  return (
+    <View style={styles.systemMessageContainer}>
+      <Icon name={systemMessage.icon} color={systemMessage.color} size={18} />
+      <Text style={styles.systemMessageContent}>
+        <MentionUser user={props.message.createdBy} /> {systemMessage.message}
+      </Text>
+    </View>
   );
 };
 
@@ -209,6 +292,15 @@ const styles = StyleSheet.create({
   messageInnerContainer: {flex: 1, flexWrap: 'wrap'},
   detailsContainer: {flexDirection: 'row', gap: 5, alignItems: 'center'},
   timestamp: {fontSize: 12, opacity: 0.6},
+  systemMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  systemMessageContent: {
+    alignSelf: 'center',
+    marginBottom: 5,
+  },
   messageStatus: {
     height: 10,
     width: 13,
