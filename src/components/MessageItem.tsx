@@ -21,6 +21,7 @@ import env from '../utils/env';
 import {useCustomPortal} from '../utils/CustomPortal';
 import {MessageContextMenu} from './context-menu/MessageContextMenu';
 import Colors from './ui/Colors';
+import {ProfileContextMenu} from './context-menu/ProfileContextMenu';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -70,6 +71,19 @@ export default React.memo(
       );
     };
 
+    const onAvatarPress = () => {
+      createPortal(
+        close => (
+          <ProfileContextMenu
+            user={props.item.createdBy}
+            userId={props.item.createdBy.id}
+            close={close}
+          />
+        ),
+        'profile-modal',
+      );
+    };
+
     const onLongPress = () => {
       if (props.preview) {
         return;
@@ -98,7 +112,11 @@ export default React.memo(
           <SystemMessage message={props.item} />
         ) : (
           <>
-            {!isCompact && <Avatar size={35} user={props.item.createdBy} />}
+            {!isCompact && (
+              <Pressable onPress={onAvatarPress}>
+                <Avatar size={35} user={props.item.createdBy} />
+              </Pressable>
+            )}
             <View style={styles.messageInnerContainer}>
               {!isCompact && <Details {...props} />}
               <Content message={props.item} preview={props.preview} />

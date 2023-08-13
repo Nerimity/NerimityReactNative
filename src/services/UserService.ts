@@ -1,4 +1,9 @@
-import {RawChannel, RawInboxWithoutChannel} from '../store/RawData';
+import {
+  RawChannel,
+  RawInboxWithoutChannel,
+  RawPost,
+  RawUser,
+} from '../store/RawData';
 import env from '../utils/env';
 import {request} from './Request';
 import ServiceEndpoints from './ServiceEndpoints';
@@ -33,5 +38,33 @@ export async function registerFCM(token: string) {
     method: 'POST',
     useToken: true,
     notJSON: true,
+  });
+}
+
+export interface UserDetails {
+  user: RawUser & {
+    _count: {
+      followers: number;
+      following: number;
+      likedPosts: number;
+      posts: number;
+    };
+    following: any[];
+    followers: any[];
+  };
+  mutualFriendIds: string[];
+  mutualServerIds: string[];
+  latestPost: RawPost;
+  profile?: UserProfile;
+}
+export interface UserProfile {
+  bio?: string;
+}
+
+export async function fetchUser(userId: string) {
+  return request<UserDetails>({
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.user(userId),
+    method: 'GET',
+    useToken: true,
   });
 }

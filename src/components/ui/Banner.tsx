@@ -8,6 +8,7 @@ interface BannerProps {
   height?: number;
   animate?: boolean;
   children?: React.JSX.Element | React.JSX.Element[];
+  margin?: number;
 }
 
 export default function Banner(props: BannerProps) {
@@ -29,7 +30,12 @@ export default function Banner(props: BannerProps) {
     : undefined;
 
   return (
-    <View style={[styles.bannerContainer, bannerStyles]}>
+    <View
+      style={[
+        styles.bannerContainer,
+        bannerStyles,
+        {margin: props.margin !== undefined ? props.margin : 10},
+      ]}>
       <View style={[styles.imageContainer, imageStyles]}>
         <View style={styles.imageDimmer} />
         {uri && (
@@ -51,8 +57,6 @@ export default function Banner(props: BannerProps) {
 const styles = StyleSheet.create({
   bannerContainer: {
     flexShrink: 0,
-
-    margin: 10,
   },
   imageContainer: {
     borderRadius: 8,

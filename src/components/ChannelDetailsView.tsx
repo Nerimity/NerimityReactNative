@@ -11,6 +11,10 @@ import {ServerMember} from '../store/serverMembers';
 import {ServerRole} from '../store/serverRoles';
 import Avatar from './ui/Avatar';
 import {observer} from 'mobx-react-lite';
+import {ProfileContextMenu} from './context-menu/ProfileContextMenu';
+import {CustomPortalProvider, useCustomPortal} from '../utils/CustomPortal';
+import {Pressable} from 'react-native-windows';
+import CustomPressable from './ui/CustomPressable';
 
 export type ChannelDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -21,10 +25,12 @@ export type ChannelDetailsScreenNavigationProp =
 
 export default function ChannelDetailsView() {
   return (
-    <View style={styles.pageContainer}>
-      <PageHeader />
-      <ServerMemberList />
-    </View>
+    <CustomPortalProvider>
+      <View style={styles.pageContainer}>
+        <PageHeader />
+        <ServerMemberList />
+      </View>
+    </CustomPortalProvider>
   );
 }
 
@@ -92,15 +98,32 @@ const RoleItem = (props: {
   );
 };
 const MemberItem = (props: {member: ServerMember; role: ServerRole}) => {
+  const {createPortal} = useCustomPortal();
+
+  const onPress = () => {
+    createPortal(
+      close => (
+        <ProfileContextMenu
+          user={props.member.user}
+          userId={props.member.userId}
+          close={close}
+        />
+      ),
+      'profile-modal',
+    );
+  };
+
   return (
-    <View style={styles.memberItemContainer}>
-      <Avatar size={40} user={props.member.user} />
-      <Text
-        numberOfLines={1}
-        style={[styles.memberUsername, {color: props.role.hexColor}]}>
-        {props.member.user.username}
-      </Text>
-    </View>
+    <CustomPressable onPress={onPress}>
+      <View style={styles.memberItemContainer}>
+        <Avatar size={40} user={props.member.user} />
+        <Text
+          numberOfLines={1}
+          style={[styles.memberUsername, {color: props.role.hexColor}]}>
+          {props.member.user.username}
+        </Text>
+      </View>
+    </CustomPressable>
   );
 };
 
