@@ -7,6 +7,26 @@ import env from './env';
 import {getUserId} from './EncryptedStore';
 import {MessageType} from '../store/RawData';
 
+const ANDROID_CHANNELS = {
+  dmMessages: 'dm-messages',
+  serverMessages: 'server-messages',
+};
+
+export const registerNotificationChannels = async () => {
+  // Request permissions (required for iOS)
+  await notifee.requestPermission();
+
+  // Create a channel (required for Android)
+  await notifee.createChannel({
+    id: ANDROID_CHANNELS.dmMessages,
+    name: 'DM Messages',
+  });
+  await notifee.createChannel({
+    id: ANDROID_CHANNELS.serverMessages,
+    name: 'Server Messages',
+  });
+};
+
 interface NotificationData {
   cUserId: string;
   channelId: string;
@@ -41,15 +61,6 @@ export async function handlePushNotification(
 }
 
 export async function showServerPushNotification(data: ServerNotificationData) {
-  // Request permissions (required for iOS)
-  await notifee.requestPermission();
-
-  // Create a channel (required for Android)
-  const channelId = await notifee.createChannel({
-    id: 'server-messages',
-    name: 'Server Messages',
-  });
-
   const existingNotification = await notifee
     .getDisplayedNotifications()
     .then(res => res.find(n => n.notification.id === data.channelId));
@@ -112,7 +123,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
       groupId: Math.random().toString(),
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,
-      channelId,
+      channelId: ANDROID_CHANNELS.serverMessages,
       ...(data.sAvatar
         ? {largeIcon: `${env.NERIMITY_CDN}${data.sAvatar}`}
         : undefined),
@@ -128,15 +139,6 @@ export async function showServerPushNotification(data: ServerNotificationData) {
 }
 
 export async function showDMNotificationData(data: DMNotificationData) {
-  // Request permissions (required for iOS)
-  await notifee.requestPermission();
-
-  // Create a channel (required for Android)
-  const channelId = await notifee.createChannel({
-    id: 'dm-messages',
-    name: 'DM Messages',
-  });
-
   const existingNotification = await notifee
     .getDisplayedNotifications()
     .then(res => res.find(n => n.notification.id === data.channelId));
@@ -180,7 +182,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
       groupId: Math.random().toString(),
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,
-      channelId,
+      channelId: ANDROID_CHANNELS.dmMessages,
       ...(data.uAvatar
         ? {largeIcon: `${env.NERIMITY_CDN}${data.uAvatar}`}
         : undefined),
@@ -210,7 +212,7 @@ function sanitize(string?: string) {
     '"': '&quot;',
     "'": '&#x27;',
     '/': '&#x2F;',
-  };
+  } as const;
   const reg = /[&<>"'/]/gi;
-  return string.replace(reg, match => map[match]);
+  return string.replace(reg, match => map[match as keyof typeof map]);
 }

@@ -19,24 +19,15 @@ import {ServerList, ServerPane} from './ServerView';
 import {InboxPane} from './InboxView';
 import FriendsScreen from './FriendsScreen';
 import {FriendStatus} from '../store/RawData';
-import messaging, {
-  FirebaseMessagingTypes,
-} from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 import {registerFCM} from '../services/UserService';
-import {handlePushNotification} from '../utils/pushNotifications';
+import {registerNotificationChannels} from '../utils/pushNotifications';
 
 // Note that an async function or a function that returns a Promise
 // is required for both subscribers.
-async function onMessageReceived(
-  message: FirebaseMessagingTypes.RemoteMessage,
-) {
-  handlePushNotification(message.data as any);
-}
-
-messaging().onMessage(onMessageReceived);
-messaging().setBackgroundMessageHandler(onMessageReceived);
 
 async function setupFCM() {
+  await registerNotificationChannels();
   // Register the device with FCM
   await messaging().registerDeviceForRemoteMessages();
 

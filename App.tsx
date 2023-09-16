@@ -9,13 +9,13 @@ import {
 import {StoreProvider} from './src/store/store';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-
 import SplashScreen from './src/components/SplashScreen';
 const LoginView = React.lazy(() => import('./src/components/LoginView'));
-const ChannelDetailsView = React.lazy(() => import('./src/components/ChannelDetailsView'));
+const ChannelDetailsView = React.lazy(
+  () => import('./src/components/ChannelDetailsView'),
+);
 const MessagesView = React.lazy(() => import('./src/components/MessagesView'));
 const LoggedInView = React.lazy(() => import('./src/components/LoggedInView'));
-
 
 import {Release, getLatestRelease} from './src/utils/githubApi';
 import {
@@ -32,9 +32,30 @@ export type RootStackParamList = {
   ChannelDetails: {channelId: string; serverId?: string};
 };
 
-import notifee, {EventType} from '@notifee/react-native';
+import notifee, {EventType, Notification} from '@notifee/react-native';
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
+import {handlePushNotification} from './src/utils/pushNotifications';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+async function onMessageReceived(
+  message: FirebaseMessagingTypes.RemoteMessage,
+) {
+  handlePushNotification(message.data as any);
+}
+
+messaging().onMessage(onMessageReceived);
+messaging().setBackgroundMessageHandler(onMessageReceived);
+
+let backgroundClickedNotification: Notification | undefined;
+notifee.onBackgroundEvent(async ({type, detail}) => {
+  const {notification} = detail;
+  if (type === EventType.PRESS) {
+    backgroundClickedNotification = notification;
+  }
+});
 
 function App(): JSX.Element {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
@@ -110,13 +131,29 @@ function App(): JSX.Element {
     }, 500);
   };
 
+  const onFocus = async () => {
+    if (backgroundClickedNotification) {
+      handleNotificationClick(backgroundClickedNotification);
+    }
+    backgroundClickedNotification = undefined;
+  };
+
   useEffect(() => {
     handleAppOpenedByNotificationPress();
-    return notifee.onForegroundEvent(({type, detail}) => {
-      if (type === EventType.PRESS) {
-        handleNotificationClick(detail.notification);
-      }
-    });
+    const disposeForegroundEvent = notifee.onForegroundEvent(
+      ({type, detail}) => {
+        if (type === EventType.PRESS) {
+          handleNotificationClick(detail.notification);
+        }
+      },
+    );
+
+    const event = AppState.addEventListener('focus', onFocus);
+
+    return () => {
+      disposeForegroundEvent();
+      event.remove();
+    };
   }, []);
 
   return (
