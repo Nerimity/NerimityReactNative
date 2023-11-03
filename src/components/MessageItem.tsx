@@ -54,8 +54,21 @@ export default React.memo(
       isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
 
     const isSystemMessage = props.item.type !== MessageType.CONTENT;
+    const onAvatarPress = () => {
+      createPortal(
+        close => (
+          <ProfileContextMenu
+            user={props.item.createdBy}
+            userId={props.item.createdBy.id}
+            close={close}
+          />
+        ),
+        'profile-modal',
+      );
+    };
 
-    const onPress = () => {
+    const onLongPress = () => {
+      Vibration.vibrate(50);
       if (props.preview) {
         return;
       }
@@ -71,37 +84,10 @@ export default React.memo(
       );
     };
 
-    const onAvatarPress = () => {
-      createPortal(
-        close => (
-          <ProfileContextMenu
-            user={props.item.createdBy}
-            userId={props.item.createdBy.id}
-            close={close}
-          />
-        ),
-        'profile-modal',
-      );
-    };
-
-    const onLongPress = () => {
-      if (props.preview) {
-        return;
-      }
-      if (props.item.type !== MessageType.CONTENT) {
-        return;
-      }
-      Vibration.vibrate(50);
-      ToastAndroid.show('Message Quoted.', ToastAndroid.SHORT);
-      const properties = channelProperties.get(props.item.channelId);
-      properties?.setContent(properties?.content + `[q:${props.item.id}]`);
-    };
-
     return (
       <Pressable
         unstable_pressDelay={100}
         android_ripple={{color: 'gray'}}
-        onPress={onPress}
         onLongPress={onLongPress}
         delayLongPress={600}
         style={[
