@@ -4,6 +4,7 @@ import {
   RawPost,
   RawUser,
 } from '../store/RawData';
+import {Presence} from '../store/users';
 import env from '../utils/env';
 import {request} from './Request';
 import ServiceEndpoints from './ServiceEndpoints';
@@ -20,6 +21,15 @@ export async function loginRequest(
       ...(isUsernameAndTag ? {usernameAndTag: email} : {email}),
       password,
     },
+  });
+}
+
+export async function updatePresence(presence: Partial<Presence>) {
+  return request<RawInboxWithoutChannel & {channel: RawChannel}>({
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.updatePresence(),
+    method: 'POST',
+    body: presence,
+    useToken: true,
   });
 }
 

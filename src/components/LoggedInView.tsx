@@ -147,9 +147,15 @@ const Tab = createBottomTabNavigator<LoggedInTabParamList>();
 const TabBar = observer((props: BottomTabBarProps) => {
   const {account} = useStore();
 
+  const descriptor =
+    props.descriptors[props.state.routes[props.state.index].key];
+
+  const hideTabBar = descriptor.options.hideTabBar;
+
   const selectedIndex = props.state.index;
   return (
-    <View style={styles.tabBarContainer}>
+    <View
+      style={[styles.tabBarContainer, {display: hideTabBar ? 'none' : 'flex'}]}>
       <View style={styles.tabBarInnerContainer}>
         <InboxTabItem {...props} selected={selectedIndex === 0} />
         <FriendsTabItem {...props} selected={selectedIndex === 1} />

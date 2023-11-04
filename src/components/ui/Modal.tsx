@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import {
   Pressable,
   ScrollView,
@@ -33,6 +33,13 @@ export function Modal(props: ModalProps) {
       }),
     [navigation],
   );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({hideTabBar: true});
+    return () => {
+      navigation.setOptions({hideTabBar: false});
+    };
+  }, [navigation]);
 
   return (
     <Pressable style={styles.backdrop} onPress={props.close}>

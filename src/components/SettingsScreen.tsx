@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import Avatar from './ui/Avatar';
 import Header from './ui/Header';
@@ -9,6 +9,11 @@ import CustomPressable from './ui/CustomPressable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import env from '../utils/env';
+import {Dropdown, DropdownItem} from './Dropdown';
+import {CustomPortalProvider} from '../utils/CustomPortal';
+import {UserStatuses, userStatusDetail} from '../utils/userStatus';
+import {observer} from 'mobx-react-lite';
+import {updatePresence} from '../services/UserService';
 
 export default function SettingsScreen() {
   const store = useStore();
@@ -17,41 +22,29 @@ export default function SettingsScreen() {
     await store.logout();
     nav.getParent()?.dispatch(StackActions.replace('Splash'));
   };
+
   return (
-    <View style={styles.pageContainer}>
-      <View style={styles.pageContainerInner}>
-        <Header title="Settings" />
-        <BannerArea />
-        <View style={{marginTop: 60, margin: 10}}>
-          <SettingPressable
-            onPress={logoutClick}
-            label="Logout"
-            color={Colors.alertColor}
-            icon="logout"
-          />
-          <SettingPressable
-            label={`App version: ${env.APP_VERSION || 'Unknown'}`}
-            icon="info"
-          />
+    <CustomPortalProvider>
+      <View style={styles.pageContainer}>
+        <View style={styles.pageContainerInner}>
+          <Header title="Settings" />
+          <BannerArea />
+          <View style={{marginTop: 60, margin: 10}}>
+            <PresenceDropdown />
+            <SettingPressable
+              onPress={logoutClick}
+              label="Logout"
+              color={Colors.alertColor}
+              icon="logout"
+            />
+            <SettingPressable
+              label={`App version: ${env.APP_VERSION || 'Unknown'}`}
+              icon="info"
+            />
+          </View>
         </View>
       </View>
-    </View>
-  );
-}
-
-function SettingPressable(props: {
-  onPress?(): void;
-  label: string;
-  icon: string;
-  color?: string;
-}) {
-  return (
-    <CustomPressable onPress={props.onPress}>
-      <View style={styles.settingPressableContainer}>
-        <Icon color={props.color || Colors.primaryColor} name={props.icon} />
-        <Text>{props.label}</Text>
-      </View>
-    </CustomPressable>
+    </CustomPortalProvider>
   );
 }
 
@@ -67,6 +60,51 @@ function BannerArea() {
         </Text>
       </View>
     </Banner>
+  );
+}
+
+const PresenceDropdown = observer(() => {
+  const {account, users} = useStore();
+
+  const user = users.get(account.user?.id!);
+  const status = userStatusDetail(user?.presence?.status || 0);
+
+  const dropDownItems = UserStatuses.map((item, i) => {
+    return {
+      circleColor: item.color,
+      id: item.id,
+      label: item.name === 'Offline' ? 'Appear As Offline' : item.name,
+      onClick: () => {
+        updatePresence({
+          status: i,
+        });
+      },
+    };
+  });
+
+  // move invisible to the bottom.
+  dropDownItems.push(dropDownItems.shift()!);
+
+  console.log(dropDownItems, status.id);
+
+  return (
+    <Dropdown title="Presence" items={dropDownItems} selectedId={status.id} />
+  );
+});
+
+function SettingPressable(props: {
+  onPress?(): void;
+  label: string;
+  icon: string;
+  color?: string;
+}) {
+  return (
+    <CustomPressable onPress={props.onPress}>
+      <View style={styles.settingPressableContainer}>
+        <Icon color={props.color || Colors.primaryColor} name={props.icon} />
+        <Text>{props.label}</Text>
+      </View>
+    </CustomPressable>
   );
 }
 
