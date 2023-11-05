@@ -22,8 +22,6 @@ import {
   AppState,
   Text,
   Image,
-  StyleProp,
-  ViewStyle,
 } from 'react-native';
 import {RootStackParamList} from '../../App';
 import {useStore} from '../store/store';
@@ -40,7 +38,6 @@ import {ServerEvents} from '../store/EventNames';
 import {postChannelTyping} from '../services/MessageService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {CustomPortalProvider} from '../utils/CustomPortal';
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
@@ -70,18 +67,16 @@ export default observer(() => {
   const {socket} = useStore();
 
   return (
-    <CustomPortalProvider>
-      <View style={styles.pageContainer}>
-        <StatusBar backgroundColor={Colors.paneColor} />
-        <PageHeader />
-        {socket.isAuthenticated && (
-          <>
-            <MessageList />
-            <InputArea />
-          </>
-        )}
-      </View>
-    </CustomPortalProvider>
+    <View style={styles.pageContainer}>
+      <StatusBar backgroundColor={Colors.paneColor} />
+      <PageHeader />
+      {socket.isAuthenticated && (
+        <>
+          <MessageList />
+          <InputArea />
+        </>
+      )}
+    </View>
   );
 });
 

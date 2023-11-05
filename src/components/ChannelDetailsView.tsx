@@ -12,9 +12,8 @@ import {ServerRole} from '../store/serverRoles';
 import Avatar from './ui/Avatar';
 import {observer} from 'mobx-react-lite';
 import {ProfileContextMenu} from './context-menu/ProfileContextMenu';
-import {CustomPortalProvider, useCustomPortal} from '../utils/CustomPortal';
-import {Pressable} from 'react-native-windows';
 import CustomPressable from './ui/CustomPressable';
+import {ModalRef} from './ui/Modal';
 
 export type ChannelDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -25,12 +24,10 @@ export type ChannelDetailsScreenNavigationProp =
 
 export default function ChannelDetailsView() {
   return (
-    <CustomPortalProvider>
-      <View style={styles.pageContainer}>
-        <PageHeader />
-        <ServerMemberList />
-      </View>
-    </CustomPortalProvider>
+    <View style={styles.pageContainer}>
+      <PageHeader />
+      <ServerMemberList />
+    </View>
   );
 }
 
@@ -98,19 +95,10 @@ const RoleItem = (props: {
   );
 };
 const MemberItem = (props: {member: ServerMember; role: ServerRole}) => {
-  const {createPortal} = useCustomPortal();
+  const profileContextMenuRef = React.useRef<ModalRef>(null);
 
   const onPress = () => {
-    createPortal(
-      close => (
-        <ProfileContextMenu
-          user={props.member.user}
-          userId={props.member.userId}
-          close={close}
-        />
-      ),
-      'profile-modal',
-    );
+    profileContextMenuRef.current?.modal.present();
   };
 
   return (
@@ -123,6 +111,11 @@ const MemberItem = (props: {member: ServerMember; role: ServerRole}) => {
           {props.member.user.username}
         </Text>
       </View>
+      <ProfileContextMenu
+        ref={profileContextMenuRef}
+        user={props.member.user}
+        userId={props.member.userId}
+      />
     </CustomPressable>
   );
 };

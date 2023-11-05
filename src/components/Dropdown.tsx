@@ -1,8 +1,7 @@
-import React from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import React, {forwardRef, useCallback, useRef} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useCustomPortal} from '../utils/CustomPortal';
-import {Modal} from './ui/Modal';
+import {Modal, ModalRef} from './ui/Modal';
 import CustomPressable from './ui/CustomPressable';
 import Colors from './ui/Colors';
 
@@ -23,43 +22,43 @@ export interface DropdownItem {
 
 export const Dropdown = (props: Props) => {
   const selectedItem = props.items.find(item => item.id === props.selectedId);
-  const {createPortal} = useCustomPortal();
+  const modalRef = useRef<ModalRef>(null);
 
-  const onPress = () => {
-    createPortal(
-      close => (
-        <DropdownModal
-          title={props.title}
-          selectedItemId={props.selectedId}
-          items={props.items}
-          close={close}
-        />
-      ),
-      'dropdown-modal',
-    );
-  };
+  const handlePresentModalPress = useCallback(() => {
+    modalRef.current?.modal.present();
+  }, []);
 
   return (
     <View>
       {props.title && <Text style={styles.title}>{props.title}</Text>}
-      <CustomPressable onPress={onPress}>
+      <CustomPressable onPress={handlePresentModalPress}>
         <View style={styles.selectedItemContainer}>
           <Item item={selectedItem!} />
           <Icon name="expand-more" size={20} />
         </View>
       </CustomPressable>
+
+      <DropdownModal
+        ref={modalRef}
+        title={props.title}
+        items={props.items}
+        close={() => modalRef.current?.modal.dismiss()}
+        selectedItemId={props.selectedId}
+      />
     </View>
   );
 };
 
-const DropdownModal = (props: {
+interface DropDownModalProps {
   title?: string;
   selectedItemId: string;
   items: DropdownItem[];
   close: () => void;
-}) => {
+}
+
+const DropdownModal = forwardRef<ModalRef, DropDownModalProps>((props, ref) => {
   return (
-    <Modal close={props.close} title={props.title}>
+    <Modal ref={ref} title={props.title}>
       <View style={styles.modalContainer}>
         {props.items.map(item => (
           <CustomPressable
@@ -83,7 +82,7 @@ const DropdownModal = (props: {
       </View>
     </Modal>
   );
-};
+});
 
 const Item = (props: {item: DropdownItem}) => {
   return (

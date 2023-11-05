@@ -22,6 +22,7 @@ import {FriendStatus} from '../store/RawData';
 import messaging from '@react-native-firebase/messaging';
 import {registerFCM} from '../services/UserService';
 import {registerNotificationChannels} from '../utils/pushNotifications';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 // Note that an async function or a function that returns a Promise
 // is required for both subscribers.

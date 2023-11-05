@@ -37,6 +37,8 @@ import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import {handlePushNotification} from './src/utils/pushNotifications';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -157,19 +159,26 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <StoreProvider>
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator
-          initialRouteName="Splash"
-          screenOptions={{headerShown: false}}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Login" component={LoginView} />
-          <Stack.Screen name="Main" component={LoggedInView} />
-          <Stack.Screen name="Message" component={MessagesView} />
-          <Stack.Screen name="ChannelDetails" component={ChannelDetailsView} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </StoreProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <StoreProvider>
+        <NavigationContainer ref={navigationRef}>
+          <BottomSheetModalProvider>
+            <Stack.Navigator
+              initialRouteName="Splash"
+              screenOptions={{headerShown: false}}>
+              <Stack.Screen name="Splash" component={SplashScreen} />
+              <Stack.Screen name="Login" component={LoginView} />
+              <Stack.Screen name="Main" component={LoggedInView} />
+              <Stack.Screen name="Message" component={MessagesView} />
+              <Stack.Screen
+                name="ChannelDetails"
+                component={ChannelDetailsView}
+              />
+            </Stack.Navigator>
+          </BottomSheetModalProvider>
+        </NavigationContainer>
+      </StoreProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import Avatar from './ui/Avatar';
 import Header from './ui/Header';
@@ -9,8 +9,7 @@ import CustomPressable from './ui/CustomPressable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import env from '../utils/env';
-import {Dropdown, DropdownItem} from './Dropdown';
-import {CustomPortalProvider} from '../utils/CustomPortal';
+import {Dropdown} from './Dropdown';
 import {UserStatuses, userStatusDetail} from '../utils/userStatus';
 import {observer} from 'mobx-react-lite';
 import {updatePresence} from '../services/UserService';
@@ -24,27 +23,25 @@ export default function SettingsScreen() {
   };
 
   return (
-    <CustomPortalProvider>
-      <View style={styles.pageContainer}>
-        <View style={styles.pageContainerInner}>
-          <Header title="Settings" />
-          <BannerArea />
-          <View style={{marginTop: 60, margin: 10}}>
-            <PresenceDropdown />
-            <SettingPressable
-              onPress={logoutClick}
-              label="Logout"
-              color={Colors.alertColor}
-              icon="logout"
-            />
-            <SettingPressable
-              label={`App version: ${env.APP_VERSION || 'Unknown'}`}
-              icon="info"
-            />
-          </View>
+    <View style={styles.pageContainer}>
+      <View style={styles.pageContainerInner}>
+        <Header title="Settings" />
+        <BannerArea />
+        <View style={{marginTop: 60, margin: 10}}>
+          <PresenceDropdown />
+          <SettingPressable
+            onPress={logoutClick}
+            label="Logout"
+            color={Colors.alertColor}
+            icon="logout"
+          />
+          <SettingPressable
+            label={`App version: ${env.APP_VERSION || 'Unknown'}`}
+            icon="info"
+          />
         </View>
       </View>
-    </CustomPortalProvider>
+    </View>
   );
 }
 
@@ -84,8 +81,6 @@ const PresenceDropdown = observer(() => {
 
   // move invisible to the bottom.
   dropDownItems.push(dropDownItems.shift()!);
-
-  console.log(dropDownItems, status.id);
 
   return (
     <Dropdown title="Presence" items={dropDownItems} selectedId={status.id} />

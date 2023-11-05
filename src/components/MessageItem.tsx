@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  ToastAndroid,
-  Vibration,
-  View,
-} from 'react-native';
+import {Pressable, StyleSheet, Text, Vibration, View} from 'react-native';
 import {MessageType, RawAttachment, RawMessage} from '../store/RawData';
 import Avatar from './ui/Avatar';
 import {formatTimestamp} from '../utils/date';
@@ -18,10 +11,10 @@ import Markup, {MentionUser} from './Markup';
 import FastImage from 'react-native-fast-image';
 import {useWindowDimensions} from 'react-native';
 import env from '../utils/env';
-import {useCustomPortal} from '../utils/CustomPortal';
 import {MessageContextMenu} from './context-menu/MessageContextMenu';
 import Colors from './ui/Colors';
 import {ProfileContextMenu} from './context-menu/ProfileContextMenu';
+import {ModalRef} from './ui/Modal';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -32,9 +25,10 @@ interface MessageItemProps {
 
 export default React.memo(
   function MessageItem(props: MessageItemProps) {
-    const {createPortal} = useCustomPortal();
-    const {messages, channelProperties} = useStore();
+    const {messages} = useStore();
     const channelMessages = messages.cache[props.item.channelId];
+    const messageContextMenuRef = React.useRef<ModalRef>(null);
+    const profileContextMenuRef = React.useRef<ModalRef>(null);
 
     const beforeMessage =
       props.index !== undefined ? channelMessages[props.index + 1] : undefined;
@@ -55,16 +49,7 @@ export default React.memo(
 
     const isSystemMessage = props.item.type !== MessageType.CONTENT;
     const onAvatarPress = () => {
-      createPortal(
-        close => (
-          <ProfileContextMenu
-            user={props.item.createdBy}
-            userId={props.item.createdBy.id}
-            close={close}
-          />
-        ),
-        'profile-modal',
-      );
+      profileContextMenuRef.current?.modal.present();
     };
 
     const onLongPress = () => {
@@ -72,16 +57,7 @@ export default React.memo(
       if (props.preview) {
         return;
       }
-      createPortal(
-        close => (
-          <MessageContextMenu
-            serverId={props.serverId}
-            message={props.item}
-            close={close}
-          />
-        ),
-        'message-context-menu',
-      );
+      messageContextMenuRef.current?.modal.present();
     };
 
     return (
@@ -109,6 +85,16 @@ export default React.memo(
             </View>
           </>
         )}
+        <MessageContextMenu
+          ref={messageContextMenuRef}
+          serverId={props.serverId}
+          message={props.item}
+        />
+        <ProfileContextMenu
+          ref={profileContextMenuRef}
+          user={props.item.createdBy}
+          userId={props.item.createdBy.id}
+        />
       </Pressable>
     );
   },

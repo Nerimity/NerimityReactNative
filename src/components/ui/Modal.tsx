@@ -1,7 +1,12 @@
-import React, {useLayoutEffect} from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
-  Pressable,
-  ScrollView,
+  BackHandler,
   StyleSheet,
   Text,
   View,
@@ -11,41 +16,78 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import Colors from './Colors';
 import {useEffect} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
+import {BottomSheetModalMethods} from '@gorhom/bottom-sheet/lib/typescript/types';
 
 export interface ModalProps {
   title?: string;
   color?: string;
   icon?: string;
-  close: () => void;
   children: React.ReactNode;
 }
 
-export function Modal(props: ModalProps) {
-  const {height} = useWindowDimensions();
-  const navigation = useNavigation();
+export interface ModalRef {
+  modal: BottomSheetModalMethods;
+}
 
-  useEffect(
-    () =>
-      navigation.addListener('beforeRemove', e => {
-        props.close();
-        e.preventDefault();
-      }),
-    [navigation],
+export const Modal = forwardRef<ModalRef, ModalProps>((props, ref) => {
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const {height} = useWindowDimensions();
+  const [isShowing, setIsShowing] = useState<boolean>(false);
+
+  useImperativeHandle(ref, () => ({
+    modal: bottomSheetModalRef.current!,
+  }));
+
+  useEffect(() => {
+    const backAction = () => {
+      if (isShowing) {
+        bottomSheetModalRef.current?.close();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [isShowing]);
+
+  const renderBackdrop = useCallback(
+    (backdropProps: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...backdropProps}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.5}
+        pressBehavior="close"
+      />
+    ),
+    [],
   );
 
-  useLayoutEffect(() => {
-    navigation.setOptions({hideTabBar: true});
-    return () => {
-      navigation.setOptions({hideTabBar: false});
-    };
-  }, [navigation]);
-
   return (
-    <Pressable style={styles.backdrop} onPress={props.close}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        style={{...styles.scrollViewContainer, maxHeight: height / 2}}>
+    <BottomSheetModal
+      ref={bottomSheetModalRef}
+      enableDynamicSizing={true}
+      backdropComponent={renderBackdrop}
+      maxDynamicContentSize={height / 2}
+      onChange={idx => {
+        setIsShowing(idx < 0 ? false : true);
+      }}
+      handleIndicatorStyle={{
+        backgroundColor: Colors.primaryColor,
+      }}
+      backgroundStyle={{backgroundColor: Colors.paneColor}}>
+      <BottomSheetScrollView>
         <View style={styles.modalContainer}>
           {props.title && (
             <View style={styles.titleContainer}>
@@ -67,10 +109,10 @@ export function Modal(props: ModalProps) {
           )}
           {props.children}
         </View>
-      </ScrollView>
-    </Pressable>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
-}
+});
 
 const styles = StyleSheet.create({
   backdrop: {

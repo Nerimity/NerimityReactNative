@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {observer} from 'mobx-react-lite';
 
-import {Modal} from '../ui/Modal';
+import {Modal, ModalRef} from '../ui/Modal';
 import {StyleSheet, Text, View} from 'react-native';
 import {useStore} from '../../store/store';
 import Banner from '../ui/Banner';
@@ -14,8 +14,13 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Colors from '../ui/Colors';
 import Markup from '../Markup';
 
+interface Props {
+  user?: RawUser | User;
+  userId: string;
+}
+
 export const ProfileContextMenu = observer(
-  (props: {close: () => void; userId: string; user?: RawUser | User}) => {
+  forwardRef<ModalRef, Props>((props, ref) => {
     const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
     const {users} = useStore();
     const cacheUser = users.get(props.userId);
@@ -27,7 +32,7 @@ export const ProfileContextMenu = observer(
     }, [props.userId]);
 
     return (
-      <Modal close={props.close}>
+      <Modal ref={ref}>
         {user ? (
           <View style={styles.modalContainer}>
             <BannerArea user={user} />
@@ -43,7 +48,7 @@ export const ProfileContextMenu = observer(
         )}
       </Modal>
     );
-  },
+  }),
 );
 
 const Heading = (props: {icon: string; title: string}) => {
