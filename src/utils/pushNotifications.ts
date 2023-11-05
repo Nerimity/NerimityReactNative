@@ -117,6 +117,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
       serverId: data.serverId,
     },
     android: {
+      smallIcon: 'ic_stat_notify',
       pressAction: {
         id: 'default',
       },
@@ -176,6 +177,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
       channelId: data.channelId,
     },
     android: {
+      smallIcon: 'ic_stat_notify',
       pressAction: {
         id: 'default',
       },
