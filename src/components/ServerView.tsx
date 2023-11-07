@@ -18,6 +18,9 @@ import Colors from './ui/Colors';
 import {ChannelType} from '../store/RawData';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {RootStackParamList} from '../../App';
+import env from '../utils/env';
+import {unicodeToTwemojiUrl} from '../utils/emoji/emoji';
+import FastImage from 'react-native-fast-image';
 
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Main'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
@@ -49,18 +52,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
     marginBottom: 5,
-    gap: 5,
+    gap: 4,
   },
   serverChannelItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
     padding: 10,
     width: '100%',
   },
   hashIcon: {
-    opacity: 0.2,
+    opacity: 0.4,
     fontSize: 16,
-    marginRight: 5,
+    lineHeight: 20,
+    fontWeight: 'bold',
+  },
+  channelIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 4,
+    overflow: 'hidden',
+    width: 19,
+    height: 19,
   },
   serverItemContainer: {
     margin: 10,
@@ -116,7 +130,7 @@ const ServerCategoryItem = (props: {category: Channel}) => {
   return (
     <View style={styles.serverCategoryContainer}>
       <View style={styles.serverCategoryHeader}>
-        <Icon name="segment" size={20} />
+        <ChannelIcon type={props.category.type} icon={props.category.icon} />
         <Text>{props.category.name}</Text>
       </View>
       <CategoryChannelList channels={categoryChannels} />
@@ -150,7 +164,7 @@ const ServerChannelItem = observer((props: {channel: Channel}) => {
         )
       }>
       <View style={styles.serverChannelItem}>
-        <Text style={styles.hashIcon}>#</Text>
+        <ChannelIcon type={props.channel.type} icon={props.channel.icon} />
         <Text numberOfLines={1} style={styles.serverChannelName}>
           {props.channel.name}
         </Text>
@@ -174,6 +188,50 @@ export const ServerList = observer(() => {
     </View>
   );
 });
+
+export const ChannelIcon = (props: {icon?: string; type?: ChannelType}) => {
+  const url = () => {
+    if (props.icon!.includes('.')) {
+      return `${env.NERIMITY_CDN}emojis/${props.icon}${
+        props.icon?.endsWith('.gif') ? '?type=webp' : ''
+      }`;
+    }
+    return unicodeToTwemojiUrl(props.icon!);
+  };
+
+  if (props.icon) {
+    return (
+      <View style={styles.channelIcon}>
+        <FastImage
+          style={{width: '100%', height: '100%'}}
+          source={{
+            uri: url(),
+            priority: FastImage.priority.normal,
+          }}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
+
+  if (props.type === ChannelType.SERVER_TEXT) {
+    return (
+      <View style={styles.channelIcon}>
+        <Text style={styles.hashIcon}>#</Text>
+      </View>
+    );
+  }
+
+  if (props.type === ChannelType.CATEGORY) {
+    return (
+      <View style={styles.channelIcon}>
+        <Icon name="segment" color="rgba(255,255,255,0.6)" size={18} />
+      </View>
+    );
+  }
+
+  return null;
+};
 
 const ServerItem = observer((props: {server: Server}) => {
   const nav = useNavigation<LoggedInTabNavigationProp>();

@@ -73,6 +73,7 @@ export class Channels {
 export class Channel {
   id: string;
   name?: string;
+  icon?: string;
   serverId?: string;
   permissions?: number;
   lastMessagedAt?: number;
@@ -95,6 +96,7 @@ export class Channel {
     this.order = channel.order;
     this.categoryId = channel.categoryId;
     this.recipientId = undefined;
+    this.icon = channel.icon;
     makeAutoObservable(this, {id: false, serverId: false, store: false});
     this.id = channel.id;
     this.serverId = channel.serverId;

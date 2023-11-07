@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "NERIMITY",
         "notifee",
-        "Pressable"
+        "Pressable",
+        "webp"
     ],
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
