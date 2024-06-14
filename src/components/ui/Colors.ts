@@ -1,6 +1,6 @@
 export default {
   backgroundColor: '#131416',
-  primaryColor: '#77a8f3',
+  primaryColor: '#4c93ff',
   alertColor: '#eb6e6e',
   warnColor: '#e8a859',
   successColor: '#78e380',
