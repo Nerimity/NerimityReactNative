@@ -7,16 +7,42 @@ import Colors from './ui/Colors';
 import Banner from './ui/Banner';
 import CustomPressable from './ui/CustomPressable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {StackActions, useNavigation} from '@react-navigation/native';
+import {
+  NavigationProp,
+  StackActions,
+  useNavigation,
+} from '@react-navigation/native';
 import env from '../utils/env';
 import {Dropdown} from './Dropdown';
 import {UserStatuses, userStatusDetail} from '../utils/userStatus';
 import {observer} from 'mobx-react-lite';
 import {updatePresence} from '../services/UserService';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import AccountSettings from './SettingsAccountScreen';
+
+export type SettingsStackParamList = {
+  default: undefined;
+  account: undefined;
+};
+
+export type SettingsNavigationProp = NavigationProp<SettingsStackParamList>;
+
+const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
 export default function SettingsScreen() {
+  return (
+    <Stack.Navigator
+      initialRouteName="default"
+      screenOptions={{headerShown: false}}>
+      <Stack.Screen name="default" component={DefaultSettings} />
+      <Stack.Screen name="account" component={AccountSettings} />
+    </Stack.Navigator>
+  );
+}
+
+const DefaultSettings = () => {
   const store = useStore();
-  const nav = useNavigation();
+  const nav = useNavigation<SettingsNavigationProp>();
   const logoutClick = async () => {
     await store.logout();
     nav.getParent()?.dispatch(StackActions.replace('Splash'));
@@ -29,12 +55,19 @@ export default function SettingsScreen() {
         <BannerArea />
         <View style={{marginTop: 60, margin: 10}}>
           <PresenceDropdown />
+
           <SettingPressable
             onPress={logoutClick}
             label="Logout"
             color={Colors.alertColor}
             icon="logout"
           />
+          <SettingPressable
+            onPress={() => nav.navigate('account')}
+            label="Account Settings"
+            icon="account-circle"
+          />
+
           <SettingPressable
             label={`App version: ${env.APP_VERSION || 'Unknown'}`}
             icon="info"
@@ -43,9 +76,9 @@ export default function SettingsScreen() {
       </View>
     </View>
   );
-}
+};
 
-function BannerArea() {
+export function BannerArea() {
   const {account} = useStore();
   return (
     <Banner user={account.user!}>
@@ -96,7 +129,11 @@ function SettingPressable(props: {
   return (
     <CustomPressable onPress={props.onPress}>
       <View style={styles.settingPressableContainer}>
-        <Icon color={props.color || Colors.primaryColor} name={props.icon} />
+        <Icon
+          color={props.color || Colors.primaryColor}
+          size={16}
+          name={props.icon}
+        />
         <Text>{props.label}</Text>
       </View>
     </CustomPressable>
