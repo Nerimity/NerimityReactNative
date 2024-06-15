@@ -335,6 +335,7 @@ const CustomInput = observer(() => {
   const route = useRoute<MainScreenRouteProp>();
   const {messages, channelProperties} = useStore();
   const [typingTimeoutId, setTypingTimeoutId] = useState<null | number>(null);
+  const [focused, setFocused] = useState(false);
 
   const channelProperty = channelProperties.get(route.params.channelId);
 
@@ -395,8 +396,13 @@ const CustomInput = observer(() => {
     channelProperty?.setAttachment(undefined);
   };
 
+  const containerStyles = {
+    ...styles.customInputContainer,
+    borderBottomColor: focused ? Colors.primaryColor : 'rgba(255,255,255,0.2)',
+  };
+
   return (
-    <View style={styles.customInputContainer}>
+    <View style={containerStyles}>
       {!channelProperty?.attachment && (
         <CustomButton
           icon="attach-file"
@@ -417,6 +423,8 @@ const CustomInput = observer(() => {
         placeholder="Message..."
         multiline
         onChangeText={onInput}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         defaultValue={channelProperty?.content || ''}
       />
       <CustomButton icon="send" onPress={onSend} styles={styles.inputButton} />

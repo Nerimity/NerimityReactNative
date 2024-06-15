@@ -29,6 +29,7 @@ interface Props {
 }
 
 const CustomInput = forwardRef<TextInput, Props>((props, ref) => {
+  const [focused, setFocused] = React.useState(false);
   const error = () => {
     if (props.error && typeof props.error !== 'string') {
       let errorField = props.errorName || props.title;
@@ -51,15 +52,22 @@ const CustomInput = forwardRef<TextInput, Props>((props, ref) => {
     }
   };
 
+  const containerStyles = {
+    ...styles.customInputContainer,
+    borderBottomColor: focused ? Colors.primaryColor : 'rgba(255,255,255,0.2)',
+  };
+
   return (
     <View style={styles.outerContainer}>
       {props.title && <Text style={styles.title}>{props.title}</Text>}
-      <View style={styles.customInputContainer}>
+      <View style={containerStyles}>
         <TextInput
           ref={ref}
           style={styles.customInput}
           autoCorrect={props.autoCorrect}
           autoCapitalize={props.autoCapitalize}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           placeholder={props.placeholder}
           onChangeText={props.onText}
           defaultValue={props.value}
