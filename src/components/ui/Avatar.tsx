@@ -36,7 +36,7 @@ export default function Avatar(props: AvatarProps) {
           uri,
           priority: FastImage.priority.normal,
         }}
-        resizeMode="contain"
+        resizeMode="cover"
       />
     </View>
   );
