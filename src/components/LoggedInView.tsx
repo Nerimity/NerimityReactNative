@@ -235,8 +235,16 @@ export default function LoggedInView() {
       screenOptions={{headerShown: false}}
       detachInactiveScreens>
       <Tab.Screen name="Home" component={ServerScreen} />
-      <Tab.Screen name="Friends" component={FriendsScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{unmountOnBlur: true}}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{unmountOnBlur: true}}
+      />
     </Tab.Navigator>
   );
 }

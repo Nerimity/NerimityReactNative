@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import Avatar from './ui/Avatar';
 import Header from './ui/Header';
@@ -56,22 +56,27 @@ const DefaultSettings = () => {
         <View style={{marginTop: 60, margin: 10}}>
           <PresenceDropdown />
 
-          <SettingPressable
-            onPress={logoutClick}
-            label="Logout"
-            color={Colors.alertColor}
-            icon="logout"
-          />
-          <SettingPressable
-            onPress={() => nav.navigate('account')}
-            label="Account Settings"
-            icon="account-circle"
-          />
+          <View style={styles.settingItems}>
+            <SettingPressable
+              onPress={() => nav.navigate('account')}
+              label="Account Settings"
+              icon="account-circle"
+            />
 
-          <SettingPressable
-            label={`App version: ${env.APP_VERSION || 'Unknown'}`}
-            icon="info"
-          />
+            <View style={styles.divider} />
+
+            <SettingPressable
+              onPress={logoutClick}
+              label="Logout"
+              color={Colors.alertColor}
+              icon="logout"
+            />
+
+            <SettingPressable
+              label={`App version: ${env.APP_VERSION || 'Unknown'}`}
+              icon="info"
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -167,5 +172,15 @@ const styles = StyleSheet.create({
     gap: 10,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  divider: {
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomWidth: 1,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  settingItems: {
+    gap: 2,
+    marginTop: 8,
   },
 });
