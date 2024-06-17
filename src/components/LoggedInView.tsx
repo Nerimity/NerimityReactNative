@@ -90,11 +90,11 @@ const styles = StyleSheet.create({
     color: 'rgb(255,255,255)',
   },
   tabBarContainer: {
-    backgroundColor: Colors.backgroundColor,
+    backgroundColor: Colors.paneColor,
   },
   tabBarInnerContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.paneColor,
+    backgroundColor: 'rgb(0, 0, 0, 1)',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     alignItems: 'center',
@@ -154,9 +154,14 @@ const TabBar = observer((props: BottomTabBarProps) => {
   const hideTabBar = descriptor.options.hideTabBar;
 
   const selectedIndex = props.state.index;
+  const isHome = selectedIndex === 0;
   return (
     <View
-      style={[styles.tabBarContainer, {display: hideTabBar ? 'none' : 'flex'}]}>
+      style={[
+        styles.tabBarContainer,
+        {display: hideTabBar ? 'none' : 'flex'},
+        isHome ? {backgroundColor: Colors.backgroundColor} : {},
+      ]}>
       <View style={styles.tabBarInnerContainer}>
         <InboxTabItem {...props} selected={selectedIndex === 0} />
         <FriendsTabItem {...props} selected={selectedIndex === 1} />

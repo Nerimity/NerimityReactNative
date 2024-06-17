@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import Header from './ui/Header';
 import Colors from './ui/Colors';
 import {BannerArea} from './SettingsScreen';
@@ -9,15 +9,15 @@ import CustomInput from './ui/CustomInput';
 const AccountSettings = () => {
   return (
     <View style={styles.pageContainer}>
-      <View style={styles.pageContainerInner}>
-        <Header title="Account Settings" showGoBack />
+      <Header title="Account Settings" showGoBack />
+      <ScrollView style={styles.pageContainerInner}>
         <BannerArea />
         <View style={{marginTop: 60, margin: 10, gap: 8}}>
           <InputBlock icon="mail" title="Email" />
           <InputBlock icon="face" title="Username" />
           <InputBlock icon="local-offer" title="Tag" />
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -41,16 +41,13 @@ export default AccountSettings;
 
 const styles = StyleSheet.create({
   pageContainer: {
-    backgroundColor: Colors.backgroundColor,
+    backgroundColor: Colors.paneColor,
     flexDirection: 'column',
     flex: 1,
   },
   pageContainerInner: {
-    backgroundColor: Colors.paneColor,
-
     flex: 1,
-    margin: 10,
-    borderRadius: 16,
+    margin: 2,
     overflow: 'hidden',
   },
 });

@@ -50,8 +50,8 @@ const DefaultSettings = () => {
 
   return (
     <View style={styles.pageContainer}>
+      <Header title="Settings" />
       <View style={styles.pageContainerInner}>
-        <Header title="Settings" />
         <BannerArea />
         <View style={{marginTop: 60, margin: 10}}>
           <PresenceDropdown />
@@ -147,16 +147,13 @@ function SettingPressable(props: {
 
 const styles = StyleSheet.create({
   pageContainer: {
-    backgroundColor: Colors.backgroundColor,
+    backgroundColor: Colors.paneColor,
     flexDirection: 'column',
     flex: 1,
   },
   pageContainerInner: {
-    backgroundColor: Colors.paneColor,
-
     flex: 1,
-    margin: 10,
-    borderRadius: 16,
+    margin: 2,
     overflow: 'hidden',
   },
   bannerContainer: {marginTop: 'auto', marginBottom: -60, marginLeft: 15},

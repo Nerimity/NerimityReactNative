@@ -17,8 +17,8 @@ export default function FriendsScreen() {
 
   return (
     <View style={styles.pageContainer}>
+      <Header title="Friends" />
       <View style={styles.pageContainerInner}>
-        <Header title="Friends" />
         <FriendPane />
       </View>
     </View>
@@ -95,16 +95,13 @@ const InboxFriendCategory = (props: {friends: Friend[]; title: String}) => {
 };
 const styles = StyleSheet.create({
   pageContainer: {
-    backgroundColor: Colors.backgroundColor,
     flexDirection: 'column',
+    backgroundColor: Colors.paneColor,
     flex: 1,
   },
   pageContainerInner: {
-    backgroundColor: Colors.paneColor,
-
     flex: 1,
-    margin: 10,
-    borderRadius: 16,
+    margin: 2,
     overflow: 'hidden',
   },
   inboxScrollView: {
@@ -115,7 +112,9 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 8,
     marginTop: 2,
-    marginBottom: 2,
+    marginLeft: 6,
+    marginRight: 6,
+    marginBottom: 8,
   },
   inboxFriendCategoryTitle: {
     paddingLeft: 5,
