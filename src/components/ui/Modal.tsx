@@ -29,6 +29,7 @@ export interface ModalProps {
   color?: string;
   icon?: string;
   children: React.ReactNode;
+  onChange?: (isShowing: boolean) => void;
 }
 
 export interface ModalRef {
@@ -39,6 +40,14 @@ export const Modal = forwardRef<ModalRef, ModalProps>((props, ref) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const {height} = useWindowDimensions();
   const [isShowing, setIsShowing] = useState<boolean>(false);
+
+  const updateIsShowing = useCallback(
+    (val: boolean) => {
+      setIsShowing(val);
+      props.onChange?.(val);
+    },
+    [props],
+  );
 
   useImperativeHandle(ref, () => ({
     modal: bottomSheetModalRef.current!,
@@ -81,7 +90,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>((props, ref) => {
       backdropComponent={renderBackdrop}
       maxDynamicContentSize={height / 2}
       onChange={idx => {
-        setIsShowing(idx < 0 ? false : true);
+        updateIsShowing(idx < 0 ? false : true);
       }}
       handleIndicatorStyle={{
         backgroundColor: Colors.primaryColor,

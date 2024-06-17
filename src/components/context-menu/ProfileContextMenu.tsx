@@ -1,4 +1,10 @@
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {observer} from 'mobx-react-lite';
 
 import {Modal, ModalRef} from '../ui/Modal';
@@ -20,19 +26,27 @@ interface Props {
 }
 
 export const ProfileContextMenu = observer(
-  forwardRef<ModalRef, Props>((props, ref) => {
+  forwardRef<ModalRef, Props>((props, forwardedRef) => {
+    const modalRef = useRef<ModalRef>(null);
+
+    useImperativeHandle(forwardedRef, () => modalRef.current as ModalRef);
+
     const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
     const {users} = useStore();
     const cacheUser = users.get(props.userId);
+    const [isShowing, setIsShowing] = useState<boolean>(false);
 
     const user = userDetails?.user || props.user || cacheUser;
 
     useEffect(() => {
+      if (!isShowing) {
+        return;
+      }
       fetchUser(props.userId).then(res => setUserDetails(res));
-    }, [props.userId]);
+    }, [props.userId, isShowing]);
 
     return (
-      <Modal ref={ref}>
+      <Modal ref={modalRef} onChange={setIsShowing}>
         {user ? (
           <View style={styles.modalContainer}>
             <BannerArea user={user} />
