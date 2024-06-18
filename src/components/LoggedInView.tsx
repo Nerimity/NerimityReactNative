@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   tabBarInnerContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgb(0, 0, 0, 1)',
+    backgroundColor: 'black',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     alignItems: 'center',
