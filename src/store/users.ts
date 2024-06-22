@@ -72,6 +72,12 @@ export class User {
     makeAutoObservable(this, {id: false, store: false});
     this.id = user.id;
   }
+  update(update: Partial<RawUser>) {
+    this.username = update.username ?? this.username;
+    this.tag = update.tag ?? this.tag;
+    this.avatar = update.avatar ?? this.avatar;
+    this.hexColor = update.hexColor ?? this.hexColor;
+  }
   updatePresence(presence: Partial<Presence>) {
     this.presence = presence as Presence;
     if (!presence.status) {

@@ -24,6 +24,28 @@ export async function loginRequest(
   });
 }
 
+interface UpdateUserOptions {
+  email?: string;
+  username?: string;
+  avatar?: string;
+  banner?: string;
+  tag?: string;
+  password?: string;
+  newPassword?: string;
+  bio?: string | null;
+  socketId?: string;
+  dmStatus?: number;
+  friendRequestStatus?: number;
+}
+export async function updateUser(body: UpdateUserOptions) {
+  return request<{user: any; newToken?: string}>({
+    url: env.SERVER_URL + '/api' + ServiceEndpoints.user(''),
+    method: 'POST',
+    body,
+    useToken: true,
+  });
+}
+
 export async function updatePresence(presence: Partial<Presence>) {
   return request<RawInboxWithoutChannel & {channel: RawChannel}>({
     url: env.SERVER_URL + '/api' + ServiceEndpoints.updatePresence(),

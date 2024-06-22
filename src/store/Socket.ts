@@ -90,6 +90,8 @@ class SocketEvents {
       this.onAuthenticated.bind(this),
     );
 
+    this.io.on(ServerEvents.USER_UPDATED, this.onUserUpdated.bind(this));
+
     this.io.on(
       ServerEvents.USER_PRESENCE_UPDATE,
       this.onUserPresenceUpdate.bind(this),
@@ -185,6 +187,10 @@ class SocketEvents {
       }
     });
     this.store.socket.setIsAuthenticated(true);
+  }
+  onUserUpdated(payload: Partial<SelfUser>) {
+    this.store.account.updateSelfUser(payload);
+    this.store.users.get(payload.id!)?.update(payload);
   }
   onMessageCreated(payload: {message: RawMessage; socketId?: string}) {
     if (payload.socketId === this.io.id) {

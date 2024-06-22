@@ -40,6 +40,12 @@ export class Account {
     this.user = newUser;
     storeUserId(newUser.id);
   }
+  updateSelfUser(update: Partial<SelfUser>) {
+    if (!this.user) {
+      return;
+    }
+    this.user = {...this.user, ...update};
+  }
   updateServerSettings(serverId: string, update: Partial<RawServerSettings>) {
     this.serverSettings[serverId] = {
       ...this.serverSettings[serverId],
