@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
-  extends: '@react-native-community',
+  extends: '@react-native',
   rules: {
-    radix: 0
-  }
+    radix: 0,
+  },
 };

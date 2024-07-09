@@ -1,5 +1,5 @@
 import React, {forwardRef, useImperativeHandle, useRef} from 'react';
-import {ToastAndroid} from 'react-native-windows';
+import {ToastAndroid} from 'react-native';
 import {MessageType, RawMessage} from '../../store/RawData';
 import Colors from '../ui/Colors';
 import {ContextMenu, ContextMenuOption} from '../ui/ContextMenu';
