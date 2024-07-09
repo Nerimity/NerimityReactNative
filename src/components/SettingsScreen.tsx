@@ -31,12 +31,19 @@ const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
 export default function SettingsScreen() {
   return (
-    <Stack.Navigator
-      initialRouteName="default"
-      screenOptions={{headerShown: false}}>
-      <Stack.Screen name="default" component={DefaultSettings} />
-      <Stack.Screen name="account" component={AccountSettings} />
-    </Stack.Navigator>
+    <View
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: Colors.paneColor,
+      }}>
+      <Stack.Navigator
+        initialRouteName="default"
+        screenOptions={{headerShown: false}}>
+        <Stack.Screen name="default" component={DefaultSettings} />
+        <Stack.Screen name="account" component={AccountSettings} />
+      </Stack.Navigator>
+    </View>
   );
 }
 
