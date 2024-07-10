@@ -24,6 +24,7 @@ interface MarkupProps {
   inline?: boolean;
   isQuote?: boolean;
   afterComponent?: React.JSX.Element | null;
+  overflowEllipsis?: boolean;
 }
 
 type RenderContext = {
@@ -136,13 +137,13 @@ function transformEntity(entity: Entity, ctx: any): JSX.Element {
       if (color.startsWith('#')) {
         el = <Text style={{color}}>{transformEntities(entity, ctx)}</Text>;
       } else {
-        el = transformEntities(entity, ctx);
+        el = <Text>{transformEntities(entity, ctx)}</Text>;
       }
 
       if (lastCount !== ctx.textCount) {
         return el;
       } else {
-        return sliceText(ctx, entity.outerSpan);
+        return <Text>{sliceText(ctx, entity.outerSpan)}</Text>;
       }
     }
 
@@ -298,13 +299,20 @@ const MarkupOuter = (props: MarkupProps) => {
   } else {
     return (
       <View>
-        <Text>
+        <Text {...(props.overflowEllipsis ? {numberOfLines: 1} : {})}>
           {output}
           {props.afterComponent}
         </Text>
       </View>
     );
   }
+
+  if (props.overflowEllipsis) {
+    el = React.cloneElement(el, {
+      numberOfLines: 1,
+    });
+  }
+
   el.props.children?.length &&
     newOutput.push(<Fragment key={el.props.children.length}>{el}</Fragment>);
 

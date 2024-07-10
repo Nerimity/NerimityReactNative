@@ -50,6 +50,10 @@ export interface RawMessage {
   attachments?: Array<RawAttachment>;
   quotedMessages: Partial<RawMessage>[];
   reactions: RawMessageReaction[];
+  mentionReplies?: boolean;
+  replyMessages: {
+    replyToMessage?: RawMessage;
+  }[];
 }
 
 export interface RawMessageReaction {

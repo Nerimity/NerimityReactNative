@@ -36,7 +36,7 @@ export const FriendItem = observer((props: {friend?: Friend; user?: User}) => {
         <Avatar user={user} size={30} />
         <View style={{flex: 1}}>
           <Text numberOfLines={1}>{user.username}</Text>
-          <UserPresence showOffline={false} userId={user.id} />
+          <UserPresence overflowEllipsis showOffline={false} userId={user.id} />
         </View>
       </View>
     </CustomPressable>

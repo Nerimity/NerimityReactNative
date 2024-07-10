@@ -6,7 +6,12 @@ import Markup from './Markup';
 import {observer} from 'mobx-react-lite';
 
 const UserPresence = observer(
-  (props: {userId: string; showOffline: boolean; animate?: boolean}) => {
+  (props: {
+    userId: string;
+    showOffline: boolean;
+    animate?: boolean;
+    overflowEllipsis?: boolean;
+  }) => {
     const {users} = useStore();
     const user = users.get(props.userId);
     const statusDetails = userStatusDetail(user?.presence?.status || 0);
@@ -23,7 +28,11 @@ const UserPresence = observer(
       <View style={styles.userPresence}>
         <View style={[styles.dot, {backgroundColor: statusDetails.color}]} />
         <View style={{opacity: 0.8}}>
-          <Markup inline text={user?.presence?.custom || statusDetails?.name} />
+          <Markup
+            overflowEllipsis={props.overflowEllipsis}
+            inline
+            text={user?.presence?.custom || statusDetails?.name}
+          />
         </View>
       </View>
     );

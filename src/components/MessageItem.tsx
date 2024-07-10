@@ -15,6 +15,7 @@ import {MessageContextMenu} from './context-menu/MessageContextMenu';
 import Colors from './ui/Colors';
 import {ProfileContextMenu} from './context-menu/ProfileContextMenu';
 import {ModalRef} from './ui/Modal';
+import Show from './ui/Show';
 
 interface MessageItemProps {
   item: RawMessage;
@@ -45,7 +46,10 @@ export default React.memo(
       beforeMessage && beforeMessage.type === MessageType.CONTENT;
 
     const isCompact =
-      isSameCreator && isDateUnderFiveMinutes && isBeforeMessageContent;
+      !props.item.replyMessages?.length &&
+      isSameCreator &&
+      isDateUnderFiveMinutes &&
+      isBeforeMessageContent;
 
     const isSystemMessage = props.item.type !== MessageType.CONTENT;
     const onAvatarPress = () => {
@@ -68,33 +72,41 @@ export default React.memo(
         delayLongPress={600}
         style={[
           styles.messageItemContainer,
-          isCompact ? styles.compactMessageItemContainer : undefined,
+          isCompact ? styles.compactMessageContainer : undefined,
         ]}>
-        {isSystemMessage ? (
-          <SystemMessage message={props.item} />
-        ) : (
-          <>
-            {!isCompact && (
-              <Pressable onPress={onAvatarPress}>
-                <Avatar size={35} user={props.item.createdBy} />
-              </Pressable>
-            )}
-            <View style={styles.messageInnerContainer}>
-              {!isCompact && <Details {...props} />}
-              <Content message={props.item} preview={props.preview} />
-            </View>
-          </>
-        )}
-        <MessageContextMenu
-          ref={messageContextMenuRef}
-          serverId={props.serverId}
-          message={props.item}
-        />
-        <ProfileContextMenu
-          ref={profileContextMenuRef}
-          user={props.item.createdBy}
-          userId={props.item.createdBy.id}
-        />
+        <Show when={props.item.replyMessages?.length}>
+          <MessageReplies message={props.item} />
+        </Show>
+        <View
+          style={[
+            styles.messageInnerContainer,
+            isCompact ? styles.compactMessageInnerContainer : undefined,
+          ]}>
+          {isSystemMessage && <SystemMessage message={props.item} />}
+          {!isSystemMessage && (
+            <>
+              {!isCompact && (
+                <Pressable onPress={onAvatarPress}>
+                  <Avatar size={35} user={props.item.createdBy} />
+                </Pressable>
+              )}
+              <View style={styles.messageInnerInnerContainer}>
+                {!isCompact && <Details {...props} />}
+                <Content message={props.item} preview={props.preview} />
+              </View>
+            </>
+          )}
+          <MessageContextMenu
+            ref={messageContextMenuRef}
+            serverId={props.serverId}
+            message={props.item}
+          />
+          <ProfileContextMenu
+            ref={profileContextMenuRef}
+            user={props.item.createdBy}
+            userId={props.item.createdBy.id}
+          />
+        </View>
       </Pressable>
     );
   },
@@ -266,20 +278,27 @@ function clampImageSize(
 
 const styles = StyleSheet.create({
   messageItemContainer: {
+    gap: 5,
+    flexDirection: 'column',
+    marginTop: 15,
+  },
+  messageInnerContainer: {
     paddingLeft: 10,
     paddingRight: 10,
-    marginTop: 15,
-    gap: 5,
+    flex: 1,
+    gap: 8,
     flexDirection: 'row',
   },
-  compactMessageItemContainer: {
+  compactMessageContainer: {
+    marginTop: 0,
+  },
+  compactMessageInnerContainer: {
     marginLeft: 40,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 0,
     paddingVertical: 2,
   },
-  messageInnerContainer: {flex: 1, flexWrap: 'wrap'},
+  messageInnerInnerContainer: {flex: 1, flexWrap: 'wrap'},
   detailsContainer: {flexDirection: 'row', gap: 5, alignItems: 'center'},
   timestamp: {fontSize: 12, opacity: 0.6},
   systemMessageContainer: {
@@ -299,5 +318,76 @@ const styles = StyleSheet.create({
   },
   imageEmbed: {
     borderRadius: 8,
+  },
+});
+
+const MessageReplies = (props: {message: RawMessage}) => {
+  return (
+    <View style={repliesStyles.container}>
+      {props.message.replyMessages.map((reply, i) => (
+        <Replies key={i} first={i === 0} message={reply.replyToMessage} />
+      ))}
+    </View>
+  );
+};
+
+const Replies = (props: {message?: RawMessage; first?: boolean}) => {
+  return (
+    <View style={repliesStyles.replyContainer}>
+      <Show when={props.first}>
+        <View style={repliesStyles.horizLine} />
+      </Show>
+      <Show when={!props.first}>
+        <View style={repliesStyles.middleHorizLine} />
+      </Show>
+      <View
+        style={[
+          repliesStyles.vertLine,
+          props.first ? repliesStyles.vertFirstLine : undefined,
+        ]}
+      />
+      <Show when={props.message}>
+        <Markup inline text={props.message?.content!} overflowEllipsis />
+      </Show>
+    </View>
+  );
+};
+
+const repliesStyles = StyleSheet.create({
+  container: {
+    marginTop: 5,
+    marginLeft: 10,
+  },
+  replyContainer: {
+    position: 'relative',
+    flexDirection: 'row',
+    marginLeft: 16,
+    paddingLeft: 26,
+  },
+  middleHorizLine: {
+    position: 'absolute',
+    width: 8,
+    borderRadius: 2,
+    height: 4,
+    backgroundColor: Colors.primaryColor,
+    top: 10,
+    left: 10,
+  },
+  vertLine: {
+    position: 'absolute',
+    width: 2,
+    backgroundColor: Colors.primaryColor,
+    top: 0,
+    bottom: 0,
+  },
+  vertFirstLine: {
+    top: 10,
+  },
+  horizLine: {
+    position: 'absolute',
+    width: 20,
+    height: 2,
+    backgroundColor: Colors.primaryColor,
+    top: 10,
   },
 });
