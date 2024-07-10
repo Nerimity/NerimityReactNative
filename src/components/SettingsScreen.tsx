@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Linking, StyleSheet, Text, View} from 'react-native';
 import Avatar from './ui/Avatar';
 import Header from './ui/Header';
 import {useStore} from '../store/store';
@@ -55,6 +55,10 @@ const DefaultSettings = () => {
     nav.getParent()?.dispatch(StackActions.replace('Splash'));
   };
 
+  const openWebVersion = () => {
+    Linking.openURL('https://nerimity.com');
+  };
+
   return (
     <View style={styles.pageContainer}>
       <Header title="Settings" />
@@ -82,6 +86,14 @@ const DefaultSettings = () => {
             <SettingPressable
               label={`App version: ${env.APP_VERSION || 'Unknown'}`}
               icon="info"
+            />
+            <SettingPressable
+              label={
+                'Nerimity mobile app is very experimental and has many missing features. It is recommended to use the web version. \n\nClick here to open the web version.'
+              }
+              icon="warning"
+              onPress={openWebVersion}
+              color={Colors.alertColor}
             />
           </View>
         </View>
@@ -142,6 +154,7 @@ function SettingPressable(props: {
     <CustomPressable onPress={props.onPress}>
       <View style={styles.settingPressableContainer}>
         <Icon
+          style={styles.settingIcon}
           color={props.color || Colors.primaryColor}
           size={16}
           name={props.icon}
@@ -175,7 +188,9 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+  },
+  settingIcon: {
+    marginTop: 2,
   },
   divider: {
     borderBottomColor: 'rgba(255,255,255,0.1)',
