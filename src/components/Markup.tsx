@@ -1,4 +1,4 @@
-import React, {createElement, useEffect, useState} from 'react';
+import React, {createElement, Fragment, useEffect, useState} from 'react';
 import {Message} from '../store/messages';
 import {Text, StyleSheet, View, Linking} from 'react-native';
 import {parseMarkup, addTextSpans, Entity, Span} from '@nerimity/nevula';
@@ -33,7 +33,9 @@ type RenderContext = {
 };
 
 const transformEntities = (entity: Entity, ctx: RenderContext) =>
-  entity.entities.map(e => transformEntity(e, ctx));
+  entity.entities.map((e, i) =>
+    React.cloneElement(transformEntity(e, ctx), {key: i.toString()}),
+  );
 
 const sliceText = (ctx: any, span: Span, {countText = true} = {}) => {
   const text = ctx.props.text.slice(span.start, span.end);
@@ -280,7 +282,7 @@ const MarkupOuter = (props: MarkupProps) => {
       if (element.type === QuoteMessage || element.type === InvalidQuote) {
         el.props.children?.length && newOutput.push(el);
         newOutput.push(element);
-        el = createElement(Text, {}, []);
+        el = createElement(Text, {key: i.toString()}, []);
         continue;
       }
 
@@ -288,6 +290,7 @@ const MarkupOuter = (props: MarkupProps) => {
         element = React.cloneElement(element, {
           large: largeEmoji,
           inline: !!inlineEmoji,
+          key: i.toString(),
         });
       }
       el.props.children?.push(element);
@@ -302,8 +305,8 @@ const MarkupOuter = (props: MarkupProps) => {
       </View>
     );
   }
-  props.afterComponent && el.props.children?.push(props.afterComponent);
-  el.props.children?.length && newOutput.push(el);
+  el.props.children?.length &&
+    newOutput.push(<Fragment key={el.props.children.length}>{el}</Fragment>);
 
   return <View>{newOutput}</View>;
 };
