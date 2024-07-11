@@ -38,6 +38,9 @@ import {ServerEvents} from '../store/EventNames';
 import {postChannelTyping} from '../services/MessageService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {Channel} from '../store/channels';
+import {CHANNEL_PERMISSIONS, hasBit, ROLE_PERMISSIONS} from '../utils/bitwise';
+import Show from './ui/Show';
 export type MainScreenRouteProp = RouteProp<RootStackParamList, 'Message'>;
 export type MainScreenNavigationProp = NavigationProp<RootStackParamList>;
 
@@ -64,7 +67,9 @@ const useChannelMessages = () => {
 };
 
 export default observer(() => {
-  const {socket} = useStore();
+  const {socket, channels} = useStore();
+  const route = useRoute<MainScreenRouteProp>();
+  const channel = channels.get(route.params.channelId);
 
   return (
     <View style={styles.pageContainer}>
@@ -73,7 +78,7 @@ export default observer(() => {
       {socket.isAuthenticated && (
         <>
           <MessageList />
-          <InputArea />
+          <InputArea channel={channel} />
         </>
       )}
     </View>
@@ -171,12 +176,45 @@ const UnreadMarker = () => {
   );
 };
 
-const InputArea = () => {
+const InputArea = (props: {channel?: Channel}) => {
+  const store = useStore();
+  const canSendMessage = () => {
+    // if (isServerAndEmailNotConfirmed()) {
+    //   return false;
+    // }
+    if (!props.channel?.serverId) {
+      return true;
+    }
+    const member = store.serverMembers.get(
+      props.channel.serverId!,
+      store.account.user?.id!,
+    );
+    if (!member) {
+      return false;
+    }
+    if (member.hasPermission(ROLE_PERMISSIONS.ADMIN)) {
+      return true;
+    }
+
+    if (
+      !hasBit(
+        props.channel?.permissions || 0,
+        CHANNEL_PERMISSIONS.SEND_MESSAGE.bit,
+      )
+    ) {
+      return false;
+    }
+
+    return member.hasPermission(ROLE_PERMISSIONS.SEND_MESSAGE);
+  };
+
   return (
     <View>
       <TypingIndicator />
       <FloatingAttachment />
-      <CustomInput />
+      <Show when={canSendMessage()}>
+        <CustomInput />
+      </Show>
     </View>
   );
 };
