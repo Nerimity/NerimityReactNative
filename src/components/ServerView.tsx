@@ -104,7 +104,10 @@ const ServerHeader = observer((props: {serverId: string}) => {
 const ServerChannelList = observer((props: {serverId: string}) => {
   const {channels} = useStore();
 
-  const serverChannels = channels.getSortedChannelsByServerId(props.serverId);
+  const serverChannels = channels.getSortedChannelsByServerId(
+    props.serverId,
+    true,
+  );
 
   return (
     <ScrollView style={styles.serverChannelListContainer}>
@@ -124,7 +127,7 @@ const ServerChannelList = observer((props: {serverId: string}) => {
 const ServerCategoryItem = (props: {category: Channel}) => {
   const {channels} = useStore();
   const categoryChannels = channels
-    .getSortedChannelsByServerId(props.category.serverId!)
+    .getSortedChannelsByServerId(props.category.serverId!, true)
     .filter(c => c.categoryId === props.category.id);
 
   return (
