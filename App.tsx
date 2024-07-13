@@ -1,10 +1,8 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {
   CommonActions,
   NavigationContainer,
-  useNavigation,
   useNavigationContainerRef,
-  useRoute,
 } from '@react-navigation/native';
 
 import {StoreProvider, useStore} from './src/store/store';
@@ -165,6 +163,21 @@ function App(): JSX.Element {
     };
   }, []);
 
+  const [showConnectionStatus, setShowConnectionStatus] = useState(true);
+
+  const ConnectionStatusWrapper = useCallback(
+    (props: NativeStackHeaderProps) => {
+      return (
+        <ConnectionStatus
+          {...props}
+          visible={showConnectionStatus}
+          setVisible={setShowConnectionStatus}
+        />
+      );
+    },
+    [showConnectionStatus],
+  );
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <StoreProvider>
@@ -174,7 +187,7 @@ function App(): JSX.Element {
               <Stack.Navigator
                 initialRouteName="Splash"
                 screenOptions={{
-                  header: ConnectionStatus,
+                  header: ConnectionStatusWrapper,
                 }}>
                 <Stack.Screen name="Splash" component={SplashScreen} />
                 <Stack.Screen name="Login" component={LoginView} />
@@ -195,7 +208,11 @@ function App(): JSX.Element {
 
 export default App;
 
-const ConnectionStatus = (props: NativeStackHeaderProps) => {
+type ConnectionStatusProps = NativeStackHeaderProps & {
+  visible: boolean;
+  setVisible: (value: boolean) => void;
+};
+const ConnectionStatus = (props: ConnectionStatusProps) => {
   const blacklist = ['Splash', 'Login'];
   const routeName = props.route.name;
 
@@ -203,12 +220,11 @@ const ConnectionStatus = (props: NativeStackHeaderProps) => {
     return null;
   }
 
-  return <ConnectionStatusInner />;
+  return <ConnectionStatusInner {...props} />;
 };
 
-const ConnectionStatusInner = observer(() => {
+const ConnectionStatusInner = observer((props: ConnectionStatusProps) => {
   const store = useStore();
-  const [show, setShow] = useState(true);
 
   const details = useCallback(() => {
     if (store.socket.authError?.message) {
@@ -247,16 +263,16 @@ const ConnectionStatusInner = observer(() => {
     let timeout: NodeJS.Timeout | undefined;
     if (details()?.text === 'Connected!') {
       timeout = setTimeout(() => {
-        setShow(false);
+        props.setVisible(false);
       }, 3000);
       return;
     }
     clearTimeout(timeout);
-    setShow(true);
-  }, [details]);
+    props.setVisible(true);
+  }, [details, props]);
 
   return (
-    <Show when={show}>
+    <Show when={props.visible}>
       <View style={{backgroundColor: details()?.color}}>
         <Text style={{textAlign: 'center'}}>{details()?.text}</Text>
       </View>
