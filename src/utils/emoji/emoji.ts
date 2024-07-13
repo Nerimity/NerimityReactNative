@@ -22,5 +22,5 @@ export const unicodeToTwemojiUrl = (unicode: string) => {
   // }
 
   // return `https://twemoji.maxcdn.com/v/latest/svg/${codePoint}.svg`;
-  return `https://twemoji.maxcdn.com/v/latest/72x72/${codePoint}.png`;
+  return `https://cdn.jsdelivr.net/gh/twitter/twemoji@12.1.5/assets/72x72/${codePoint}.png`;
 };
