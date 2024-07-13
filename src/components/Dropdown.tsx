@@ -62,6 +62,7 @@ const DropdownModal = forwardRef<ModalRef, DropDownModalProps>((props, ref) => {
       <View style={styles.modalContainer}>
         {props.items.map(item => (
           <CustomPressable
+            key={item.id}
             onPress={() => {
               item.onClick?.();
               props.close();
