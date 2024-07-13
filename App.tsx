@@ -1,13 +1,17 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   CommonActions,
   NavigationContainer,
-  NavigationContainerRef,
+  useNavigation,
   useNavigationContainerRef,
+  useRoute,
 } from '@react-navigation/native';
 
-import {StoreProvider} from './src/store/store';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {StoreProvider, useStore} from './src/store/store';
+import {
+  createNativeStackNavigator,
+  NativeStackHeaderProps,
+} from '@react-navigation/native-stack';
 
 import SplashScreen from './src/components/SplashScreen';
 const LoginView = React.lazy(() => import('./src/components/LoginView'));
@@ -23,7 +27,7 @@ import {
   storeLastUpdateCheckedDate,
 } from './src/utils/EncryptedStore';
 import env from './src/utils/env';
-import {Alert, AppState, Linking} from 'react-native';
+import {Alert, AppState, Linking, Text, View} from 'react-native';
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
@@ -39,6 +43,9 @@ import messaging, {
 import {handlePushNotification} from './src/utils/pushNotifications';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
+import Colors from './src/components/ui/Colors';
+import {observer} from 'mobx-react-lite';
+import Show from './src/components/ui/Show';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -163,18 +170,22 @@ function App(): JSX.Element {
       <StoreProvider>
         <NavigationContainer ref={navigationRef}>
           <BottomSheetModalProvider>
-            <Stack.Navigator
-              initialRouteName="Splash"
-              screenOptions={{headerShown: false}}>
-              <Stack.Screen name="Splash" component={SplashScreen} />
-              <Stack.Screen name="Login" component={LoginView} />
-              <Stack.Screen name="Main" component={LoggedInView} />
-              <Stack.Screen name="Message" component={MessagesView} />
-              <Stack.Screen
-                name="ChannelDetails"
-                component={ChannelDetailsView}
-              />
-            </Stack.Navigator>
+            <View style={{height: '100%'}}>
+              <Stack.Navigator
+                initialRouteName="Splash"
+                screenOptions={{
+                  header: ConnectionStatus,
+                }}>
+                <Stack.Screen name="Splash" component={SplashScreen} />
+                <Stack.Screen name="Login" component={LoginView} />
+                <Stack.Screen name="Main" component={LoggedInView} />
+                <Stack.Screen name="Message" component={MessagesView} />
+                <Stack.Screen
+                  name="ChannelDetails"
+                  component={ChannelDetailsView}
+                />
+              </Stack.Navigator>
+            </View>
           </BottomSheetModalProvider>
         </NavigationContainer>
       </StoreProvider>
@@ -183,3 +194,72 @@ function App(): JSX.Element {
 }
 
 export default App;
+
+const ConnectionStatus = (props: NativeStackHeaderProps) => {
+  const blacklist = ['Splash', 'Login'];
+  const routeName = props.route.name;
+
+  if (blacklist.includes(routeName)) {
+    return null;
+  }
+
+  return <ConnectionStatusInner />;
+};
+
+const ConnectionStatusInner = observer(() => {
+  const store = useStore();
+  const [show, setShow] = useState(true);
+
+  const details = useCallback(() => {
+    if (store.socket.authError?.message) {
+      return {
+        color: Colors.alertColor,
+        text: store.socket.authError.message,
+      };
+    }
+    if (store.socket.isAuthenticated) {
+      return {
+        color: Colors.successColor,
+        text: 'Connected!',
+      };
+    }
+
+    if (store.socket.isConnected && !store.socket.isAuthenticated) {
+      return {
+        color: Colors.warnColor,
+        text: 'Authenticating...',
+      };
+    }
+
+    if (!store.socket.isConnected) {
+      return {
+        color: Colors.warnColor,
+        text: 'Connecting...',
+      };
+    }
+  }, [
+    store.socket.authError,
+    store.socket.isAuthenticated,
+    store.socket.isConnected,
+  ]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout | undefined;
+    if (details()?.text === 'Connected!') {
+      timeout = setTimeout(() => {
+        setShow(false);
+      }, 3000);
+      return;
+    }
+    clearTimeout(timeout);
+    setShow(true);
+  }, [details]);
+
+  return (
+    <Show when={show}>
+      <View style={{backgroundColor: details()?.color}}>
+        <Text style={{textAlign: 'center'}}>{details()?.text}</Text>
+      </View>
+    </Show>
+  );
+});

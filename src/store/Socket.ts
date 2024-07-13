@@ -45,6 +45,8 @@ export class Socket {
   store: Store;
   socketEvents: SocketEvents;
   isAuthenticated: boolean = false;
+  isConnected: boolean = false;
+  authError?: {message: string; data: any} | null = null;
   constructor(store: Store) {
     this.store = store;
     this.io = io('https://nerimity.com', {
@@ -55,12 +57,22 @@ export class Socket {
 
     makeObservable(this, {
       isAuthenticated: observable,
+      isConnected: observable,
+      authError: observable,
       setIsAuthenticated: action,
+      setConnected: action,
+      setAuthError: action,
     });
   }
 
   setIsAuthenticated(isAuthenticated: boolean) {
     this.isAuthenticated = isAuthenticated;
+  }
+  setAuthError(authError: {message: string; data: any} | null) {
+    this.authError = authError;
+  }
+  setConnected(connected: boolean) {
+    this.isConnected = connected;
   }
 
   connect() {
@@ -84,6 +96,7 @@ class SocketEvents {
 
     // register events
     this.io.on(ServerEvents.CONNECT, this.onConnect.bind(this));
+    this.io.on(ServerEvents.AUTHENTICATE_ERROR, this.onAuthError.bind(this));
     this.io.on('disconnect', this.onDisconnect.bind(this));
     this.io.on(
       ServerEvents.USER_AUTHENTICATED,
@@ -109,14 +122,24 @@ class SocketEvents {
     );
   }
   onConnect() {
+    this.store.socket.setAuthError(null);
+    this.store.socket.setConnected(true);
     console.log('Authenticating...');
     this.io.emit(ClientEvents.AUTHENTICATE, {token: this.store.account.token});
   }
+  onAuthError(error: {message: string; data: any}) {
+    this.store.socket.setConnected(false);
+    this.store.socket.setIsAuthenticated(false);
+    this.store.socket.setAuthError(error);
+  }
   onDisconnect() {
+    this.store.socket.setConnected(false);
     this.store.socket.setIsAuthenticated(false);
   }
   onAuthenticated(payload: AuthenticatedPayload) {
     console.log('Authenticated!');
+    this.store.socket.setIsAuthenticated(true);
+
     transaction(() => {
       this.store.account.addSelfUser(payload.user);
       this.store.users.addCache(payload.user);
@@ -186,7 +209,6 @@ class SocketEvents {
         this.store.channels.get(channelId)?.updateLastSeen(timestamp);
       }
     });
-    this.store.socket.setIsAuthenticated(true);
   }
   onUserUpdated(payload: Partial<SelfUser>) {
     this.store.account.updateSelfUser(payload);
