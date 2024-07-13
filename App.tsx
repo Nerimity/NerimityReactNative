@@ -106,6 +106,7 @@ function App(): JSX.Element {
         const latestRelease = await getLatestRelease();
 
         if (latestRelease.tag_name !== env.APP_VERSION) {
+          storeLastUpdateCheckedDate(0);
           updateAlert(latestRelease);
         }
       }

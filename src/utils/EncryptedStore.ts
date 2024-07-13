@@ -20,10 +20,10 @@ export async function removeUserToken() {
   return await EncryptedStorage.removeItem('user_token');
 }
 
-export async function storeLastUpdateCheckedDate() {
+export async function storeLastUpdateCheckedDate(timestamp = Date.now()) {
   await EncryptedStorage.setItem(
     'last_update_checked_date',
-    Date.now().toString(),
+    timestamp.toString(),
   );
 }
 
