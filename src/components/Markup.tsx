@@ -164,7 +164,7 @@ function transformEntity(entity: Entity, ctx: any): JSX.Element {
       const name = sliceText(ctx, entity.innerSpan, {countText: false});
       const unicode = emojiShortcodeToUnicode(name as unknown as string);
       if (!unicode) {
-        return sliceText(ctx, entity.outerSpan);
+        return <Text>{sliceText(ctx, entity.outerSpan)}</Text>;
       }
       ctx.emojiCount += 1;
       return <Emoji name={name} url={unicodeToTwemojiUrl(unicode)} />;
