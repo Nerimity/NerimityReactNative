@@ -5,7 +5,15 @@ import notifee, {
 } from '@notifee/react-native';
 import env from './env';
 import {getUserId} from './EncryptedStore';
-import {MessageType} from '../store/RawData';
+
+export enum MessageType {
+  CONTENT = 0,
+  JOIN_SERVER = 1,
+  LEAVE_SERVER = 2,
+  KICK_USER = 3,
+  BAN_USER = 4,
+  STARTED_CALL = 5,
+}
 
 const ANDROID_CHANNELS = {
   dmMessages: 'dm-messages',

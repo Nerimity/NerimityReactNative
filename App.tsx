@@ -5,7 +5,22 @@ import {CustomWebView, CustomWebViewRef} from './src/components/CustomWebView';
 import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
 import TrackPlayer from 'react-native-track-player';
 
+import {handlePushNotification} from './src/pushNotifications';
+
+import messaging, {
+  FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging';
+
 TrackPlayer.setupPlayer();
+
+async function onMessageReceived(
+  message: FirebaseMessagingTypes.RemoteMessage,
+) {
+  handlePushNotification(message.data as any);
+}
+
+messaging().onMessage(onMessageReceived);
+messaging().setBackgroundMessageHandler(onMessageReceived);
 
 function App(): JSX.Element {
   const videoRef = useRef<CustomVideoRef | null>(null);

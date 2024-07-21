@@ -1,4 +1,4 @@
-import {store} from '../store/store';
+import {getUserToken} from '../EncryptedStore';
 
 interface RequestOpts {
   url: string;
@@ -10,7 +10,10 @@ interface RequestOpts {
 }
 
 export async function request<T>(opts: RequestOpts): Promise<T> {
-  const token = store.account.token!;
+  const token = await getUserToken();
+  if (!token) {
+    throw {message: 'No token'};
+  }
   const url = new URL(opts.url);
   url.search = new URLSearchParams(opts.params || {}).toString();
 

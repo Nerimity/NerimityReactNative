@@ -81,6 +81,14 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const post = (event, payload) => {
           window.ReactNativeWebView.postMessage(JSON.stringify({event, payload}));
         };
+
+        const logout = () => {
+          post('logout');
+        }
+        const token = (token) => {
+          post('token', token);
+        }
+
       
         const playVideo = (url) => {
           post('playVideo', {url});
