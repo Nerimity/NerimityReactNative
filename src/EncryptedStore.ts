@@ -8,18 +8,6 @@ export async function getUserId() {
   return await EncryptedStorage.getItem('user_id');
 }
 
-export async function storeUserToken(token: string) {
-  await EncryptedStorage.setItem('user_token', token);
-}
-
-export async function getUserToken() {
-  return await EncryptedStorage.getItem('user_token');
-}
-
-export async function removeUserToken() {
-  return await EncryptedStorage.removeItem('user_token');
-}
-
 export async function storeLastUpdateCheckedDate(timestamp = Date.now()) {
   await EncryptedStorage.setItem(
     'last_update_checked_date',

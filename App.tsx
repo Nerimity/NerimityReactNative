@@ -10,6 +10,7 @@ import {handlePushNotification} from './src/pushNotifications';
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
+import notifee, {EventType, Notification} from '@notifee/react-native';
 
 TrackPlayer.setupPlayer();
 
@@ -21,6 +22,14 @@ async function onMessageReceived(
 
 messaging().onMessage(onMessageReceived);
 messaging().setBackgroundMessageHandler(onMessageReceived);
+
+let backgroundClickedNotification: Notification | undefined;
+notifee.onBackgroundEvent(async ({type, detail}) => {
+  const {notification} = detail;
+  if (type === EventType.PRESS) {
+    backgroundClickedNotification = notification;
+  }
+});
 
 function App(): JSX.Element {
   const videoRef = useRef<CustomVideoRef | null>(null);

@@ -8,13 +8,16 @@ import {
 } from 'react';
 import {StyleSheet} from 'react-native';
 import WebView, {WebViewMessageEvent} from 'react-native-webview';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import messaging from '@react-native-firebase/messaging';
 
 import TrackPlayer, {
   Event,
   State,
   useTrackPlayerEvents,
 } from 'react-native-track-player';
-import {getPlaybackState} from 'react-native-track-player/lib/src/trackPlayer';
+import {storeUserId} from '../EncryptedStore';
+import {registerNotificationChannels} from '../pushNotifications';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
@@ -85,8 +88,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const logout = () => {
           post('logout');
         }
-        const token = (token) => {
-          post('token', token);
+        const authenticated = (userId) => {
+          post('authenticated', userId);
         }
 
       
@@ -112,6 +115,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           playAudio,
           pauseAudio,
           seekAudio,
+          authenticated,
+          logout,
           on,
           off,
           emit,
@@ -162,6 +167,21 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       if (event === 'pauseAudio') {
         TrackPlayer.pause();
       }
+      if (event === 'logout') {
+        console.log('logged out');
+        await EncryptedStorage.clear();
+        await messaging().unregisterDeviceForRemoteMessages();
+      }
+      if (event === 'authenticated') {
+        const userId = payload;
+        console.log('authenticated', userId);
+        await storeUserId(userId);
+        await registerNotificationChannels();
+
+        await messaging().registerDeviceForRemoteMessages();
+        const token = await messaging().getToken();
+        localRefs().emit('registerFCM', {token});
+      }
     };
 
     return (
@@ -175,7 +195,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         textInteractionEnabled={false}
         webviewDebuggingEnabled
         style={styles.container}
-        source={{uri: 'http://192.168.1.128:3000/login'}}
+        source={{uri: 'https://nerimity.com/login'}}
         onLoadProgress={({nativeEvent}) => {
           setWebViewCanGoBack(nativeEvent.canGoBack);
         }}
