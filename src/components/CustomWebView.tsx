@@ -21,9 +21,11 @@ import {registerNotificationChannels} from '../pushNotifications';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
+  emit(event: string, payload: any): void;
 }
 
 export interface CustomWebViewProps {
+  url?: string | null;
   onVideoClick: (url: string) => void;
 }
 
@@ -33,22 +35,23 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
 
     const [webViewCanGoBack, setWebViewCanGoBack] = useState(false);
 
-    const localRefs = () => ({
-      goBack: () => {
-        if (!webViewCanGoBack) {
-          return false;
-        }
-        webViewRef.current?.goBack();
-        return true;
-      },
-      emit: (event: string, payload: any) => {
-        console.log('Emitting', event);
-        webViewRef.current?.injectJavaScript(`
+    const localRefs = () =>
+      ({
+        goBack: () => {
+          if (!webViewCanGoBack) {
+            return false;
+          }
+          webViewRef.current?.goBack();
+          return true;
+        },
+        emit: (event: string, payload: any) => {
+          console.log('Emitting', event);
+          webViewRef.current?.injectJavaScript(`
           window.reactNative.emit('${event}', ${JSON.stringify(payload)});
           true;
         `);
-      },
-    });
+        },
+      } satisfies CustomWebViewRef);
 
     useImperativeHandle(ref, localRefs);
 
@@ -195,7 +198,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         textInteractionEnabled={false}
         webviewDebuggingEnabled
         style={styles.container}
-        source={{uri: 'https://nerimity.com/login'}}
+        source={{uri: props.url || 'https://nerimity.com/login'}}
         onLoadProgress={({nativeEvent}) => {
           setWebViewCanGoBack(nativeEvent.canGoBack);
         }}

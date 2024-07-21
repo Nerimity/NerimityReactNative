@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {BackHandler, Platform} from 'react-native';
+import {AppState, BackHandler, Platform} from 'react-native';
 import Show from './src/components/ui/Show';
 import {CustomWebView, CustomWebViewRef} from './src/components/CustomWebView';
 import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
@@ -34,7 +34,49 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
 function App(): JSX.Element {
   const videoRef = useRef<CustomVideoRef | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
   const webViewRef = useRef<CustomWebViewRef | null>(null);
+
+  async function handleNotificationClick(notification: any) {
+    const serverId = notification?.data?.serverId;
+    const channelId = notification?.data?.channelId;
+    let newUrl = 'https://nerimity.com/app';
+    if (serverId) {
+      newUrl += '/servers/' + serverId + '/' + channelId;
+    } else {
+      newUrl += '/inbox/' + channelId;
+    }
+    setUrl('https://nerimity.com');
+    setUrl(newUrl);
+  }
+  useEffect(() => {
+    notifee.getInitialNotification().then(initN => {
+      if (!initN?.notification) {
+        return;
+      }
+      handleNotificationClick(initN.notification);
+    });
+
+    const disposeForegroundEvent = notifee.onForegroundEvent(
+      ({type, detail}) => {
+        if (type === EventType.PRESS) {
+          handleNotificationClick(detail.notification);
+        }
+      },
+    );
+
+    const event = AppState.addEventListener('focus', () => {
+      if (backgroundClickedNotification) {
+        handleNotificationClick(backgroundClickedNotification);
+      }
+      backgroundClickedNotification = undefined;
+    });
+
+    return () => {
+      disposeForegroundEvent();
+      event.remove();
+    };
+  }, []);
 
   const onAndroidBackPress = useCallback(() => {
     if (videoUrl) {
@@ -58,7 +100,7 @@ function App(): JSX.Element {
 
   return (
     <>
-      <CustomWebView ref={webViewRef} onVideoClick={setVideoUrl} />
+      <CustomWebView url={url} ref={webViewRef} onVideoClick={setVideoUrl} />
       <Show when={videoUrl}>
         <CustomVideo
           ref={videoRef}
