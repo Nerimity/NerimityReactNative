@@ -1,11 +1,5 @@
-import React, {createRef} from 'react';
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React from 'react';
+import {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet} from 'react-native';
 import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import EncryptedStorage from 'react-native-encrypted-storage';
@@ -27,6 +21,7 @@ export interface CustomWebViewRef {
 export interface CustomWebViewProps {
   url?: string | null;
   onVideoClick: (url: string) => void;
+  onAuthenticated: (userId: string) => void;
 }
 
 export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
@@ -176,6 +171,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         await messaging().unregisterDeviceForRemoteMessages();
       }
       if (event === 'authenticated') {
+        props.onAuthenticated(payload);
         const userId = payload;
         console.log('authenticated', userId);
         await storeUserId(userId);

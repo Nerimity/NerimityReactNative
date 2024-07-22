@@ -123,6 +123,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
       selfUserId: selfUserId!,
       channelId: data.channelId,
       serverId: data.serverId,
+      userId: data.cUserId,
     },
     android: {
       smallIcon: 'ic_stat_notify',
@@ -183,6 +184,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
     data: {
       selfUserId: selfUserId!,
       channelId: data.channelId,
+      userId: data.cUserId,
     },
     android: {
       smallIcon: 'ic_stat_notify',
