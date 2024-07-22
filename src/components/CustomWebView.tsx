@@ -192,6 +192,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         overScrollMode="never"
         setBuiltInZoomControls={false}
         textInteractionEnabled={false}
+        textZoom={100}
         webviewDebuggingEnabled
         style={styles.container}
         source={{uri: props.url || 'https://nerimity.com/login'}}
