@@ -207,6 +207,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         injectedJavaScriptBeforeContentLoaded={inject}
         bounces={false}
         overScrollMode="never"
+        allowsFullscreenVideo={true}
         setBuiltInZoomControls={false}
         textInteractionEnabled={false}
         textZoom={100}
