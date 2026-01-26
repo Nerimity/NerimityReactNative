@@ -192,7 +192,6 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         console.log('authenticated', userId);
         await storeUserId(userId);
         await storeUserToken(userToken);
-        await registerNotificationChannels();
 
         await messaging().registerDeviceForRemoteMessages();
         const token = await messaging().getToken();

@@ -9,7 +9,7 @@ import {
 import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
 import TrackPlayer from 'react-native-track-player';
 
-import {handlePushNotification} from './src/pushNotifications';
+import {handlePushNotification, registerNotificationChannels} from './src/pushNotifications';
 
 import messaging, {
   FirebaseMessagingTypes,
@@ -48,6 +48,10 @@ function App(): JSX.Element {
   const [url, setUrl] = useState<string | null>(null);
   const runIfAuthenticated = useWaitFor(authenticated);
   useUpdateChecker();
+
+  useEffect(() => {
+    registerNotificationChannels();
+  }, [])
 
   const handleNotificationClick = useCallback(
     async (notification: any) => {
