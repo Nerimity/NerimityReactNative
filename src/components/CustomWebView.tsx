@@ -38,13 +38,21 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const event = state === 'active' ? 'focus' : 'blur';
         webViewRef.current?.injectJavaScript(`  
           window.dispatchEvent(new Event('${event}'));
+          true;
         `);
       });
 
       return () => {
         dispose.remove();
       };
-    });
+    }, []);
+
+    const onWebViewReady = () => {
+      webViewRef.current?.injectJavaScript(`
+      window.dispatchEvent(new Event('focus'));
+      true;
+    `);
+    };
 
     const localRefs = () =>
       ({
@@ -215,6 +223,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         onLoadProgress={({nativeEvent}) => {
           setWebViewCanGoBack(nativeEvent.canGoBack);
         }}
+        onLoadEnd={onWebViewReady}
         onNavigationStateChange={state => {
           currentUrl = state.url;
         }}
