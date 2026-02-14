@@ -50,7 +50,9 @@ jobs:
 
       - name: Build Apk
         run: |
-          cd android && ./gradlew assembleRelease --no-daemon
+          VERSION_NAME="${{ steps.get_version.outputs.VERSION }}"
+          VERSION_NAME="${VERSION_NAME#v}"
+          cd android && ./gradlew assembleRelease --no-daemon -PVERSION_NAME="$VERSION_NAME"
 
       
       - name: Sign app APK

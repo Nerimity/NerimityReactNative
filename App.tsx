@@ -158,7 +158,10 @@ function useUpdateChecker() {
       Linking.openURL(release.html_url);
     };
 
-    Alert.alert('Update Available', 'A new version of Nerimity is available', [
+    Alert.alert(
+      'Update Available',
+      `Current: ${env.APP_VERSION}\nLatest: ${release.tag_name}`,
+      [
       {text: 'Later'},
       {
         text: 'View Changelog',
@@ -169,7 +172,8 @@ function useUpdateChecker() {
         text: 'Update Now',
         onPress: onUpdateNow,
       },
-    ]);
+      ],
+    );
   }, []);
 
   const checkForUpdates = useCallback(async () => {

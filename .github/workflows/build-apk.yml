@@ -1,0 +1,51 @@
+name: build-apk
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: node:20
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up our JDK environment
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'microsoft'
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install Node.js dependencies
+        run: |
+          npm i
+
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_SERVER_URL: "https://nerimity.com"
+          envkey_DEV_MODE: "true"
+          envkey_APP_VERSION: "dev-${{ github.sha }}"
+          envkey_TURNSTILE_SITEKEY: "0x4AAAAAAABO1ilip_YaVHJk"
+          envkey_EMOJI_URL: "https://nerimity.com/twemojis/"
+          envkey_NERIMITY_CDN: "https://cdn.nerimity.com/"
+
+      - name: Make Gradlew Executable
+        run: cd android && chmod +x ./gradlew
+
+      - name: Build Debug Apk
+        run: |
+          cd android && ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nerimity-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk

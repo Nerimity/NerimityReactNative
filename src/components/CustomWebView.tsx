@@ -13,6 +13,7 @@ import TrackPlayer, {
 import {storeUserId, storeUserToken} from '../EncryptedStore';
 import {registerNotificationChannels} from '../pushNotifications';
 import {AppState} from 'react-native';
+import env from '../env';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
@@ -133,6 +134,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       
         window.reactNative = {
           isReactNative: true,
+          version: "${env.APP_VERSION || 'dev'}",
           playVideo,
           playAudio,
           pauseAudio,
