@@ -13,8 +13,8 @@ jobs:
     container: node:20
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up our JDK environment
+      
+      - name: Set up our JDK environment # setup JDK environment: mandatory as we need to build  android project
         uses: actions/setup-java@v3
         with:
           distribution: 'microsoft'
@@ -31,8 +31,8 @@ jobs:
         uses: SpicyPizza/create-envfile@v1.3
         with:
           envkey_SERVER_URL: "https://nerimity.com"
-          envkey_DEV_MODE: "true"
-          envkey_APP_VERSION: "dev-${{ github.sha }}"
+          envkey_DEV_MODE: "false"
+          envkey_APP_VERSION: "dev"
           envkey_TURNSTILE_SITEKEY: "0x4AAAAAAABO1ilip_YaVHJk"
           envkey_EMOJI_URL: "https://nerimity.com/twemojis/"
           envkey_NERIMITY_CDN: "https://cdn.nerimity.com/"
@@ -40,12 +40,29 @@ jobs:
       - name: Make Gradlew Executable
         run: cd android && chmod +x ./gradlew
 
-      - name: Build Debug Apk
+      - name: Build Apk
         run: |
-          cd android && ./gradlew assembleDebug --no-daemon
+          cd android && ./gradlew assembleRelease --no-daemon -PVERSION_NAME="dev"
 
+      
+      - name: Sign app APK
+        uses: r0adkll/sign-android-release@v1
+        # ID used to access action output
+        id: sign_app
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Rename and move apk
+        run: |
+          mv ${{steps.sign_app.outputs.signedReleaseFile}} $GITHUB_WORKSPACE/nerimity-dev.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: nerimity-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: nerimity-dev.apk
