@@ -29,6 +29,10 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
         private const val MAX_MESSAGES = 6
         // channel id => list of (body, emojiBitmaps)
         private val messageHistory = mutableMapOf<String, MutableList<MessageEntry>>()
+
+        fun clearHistory(channelId: String) {
+            messageHistory.remove(channelId)
+        }
     }
 
     private data class MessageEntry(
@@ -147,11 +151,20 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
+                val dismissIntent = Intent(context, NotificationDismissReceiver::class.java).apply {
+                    putExtra(NotificationDismissReceiver.EXTRA_CHANNEL_ID, id)
+                }
+                val deletePendingIntent = PendingIntent.getBroadcast(
+                    context, id.hashCode(), dismissIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
                 val builder = NotificationCompat.Builder(context, channelId)
                     .setSmallIcon(context.resources.getIdentifier("ic_stat_notify", "drawable", context.packageName))
                     .setContentTitle(fromHtml(title))
                     .setContentText(fromHtml(unicodeBody))
                     .setContentIntent(pendingIntent)
+                    .setDeleteIntent(deletePendingIntent)
                     .setAutoCancel(true)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setCustomContentView(collapsedView)

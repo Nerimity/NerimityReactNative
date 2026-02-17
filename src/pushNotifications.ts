@@ -224,20 +224,21 @@ function formatMarkup(text: string): string {
   return text;
 }
 
-const CUSTOM_EMOJI_REGEX = /:\[ce:(\d+):([^\]]+)\]/g;
+const CUSTOM_EMOJI_REGEX = /\[(?:w?a)?ce:(\d+):([^\]]+)\]/g;
 
-function getCustomEmojiUrl(emojiId: string): string {
-  return `${env.NERIMITY_CDN}emojis/${emojiId}.webp`;
+function getCustomEmojiUrl(emojiId: string, type: string): string {
+  const ext = type === 'ace' ? 'gif' : 'webp';
+  return `${env.NERIMITY_CDN}emojis/${emojiId}.${ext}`;
 }
 
 function extractAllCustomEmojis(
   content: string,
-): {id: string; name: string}[] {
-  const results: {id: string; name: string}[] = [];
-  const regex = /:\[ce:(\d+):([^\]]+)\]/g;
+): {id: string; name: string; type: string}[] {
+  const results: {id: string; name: string; type: string}[] = [];
+  const regex = /\[((?:w?a)?ce):(\d+):([^\]]+)\]/g;
   let match;
   while ((match = regex.exec(content)) !== null) {
-    results.push({id: match[1], name: match[2]});
+    results.push({id: match[2], name: match[3], type: match[1]});
   }
   return results;
 }
@@ -254,7 +255,7 @@ function replaceCustomEmojisWithPlaceholders(content: string): {
     const placeholder = `:${emoji.name}:`;
     if (!seen.has(emoji.id)) {
       seen.add(emoji.id);
-      emojis.push({placeholder, url: getCustomEmojiUrl(emoji.id)});
+      emojis.push({placeholder, url: getCustomEmojiUrl(emoji.id, emoji.type)});
     }
   }
 
