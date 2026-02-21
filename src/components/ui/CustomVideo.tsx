@@ -4,7 +4,7 @@ import Video, {VideoRef} from 'react-native-video';
 
 export interface CustomVideoProps {
   videoUrl: string;
-  onVideoEnd: () => void;
+  onVideoEnd?: () => void;
 }
 
 export interface CustomVideoRef {
@@ -18,7 +18,7 @@ export const CustomVideo = forwardRef<CustomVideoRef, CustomVideoProps>(
     useImperativeHandle(ref, () => ({
       stopVideo: () => {
         videoRef.current?.setFullScreen(false);
-        props.onVideoEnd();
+        props.onVideoEnd?.();
       },
     }));
 

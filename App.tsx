@@ -9,7 +9,10 @@ import {
 import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
 import TrackPlayer from 'react-native-track-player';
 
-import {handlePushNotification, registerNotificationChannels} from './src/pushNotifications';
+import {
+  handlePushNotification,
+  registerNotificationChannels,
+} from './src/pushNotifications';
 
 import messaging, {
   FirebaseMessagingTypes,
@@ -51,7 +54,7 @@ function App(): JSX.Element {
 
   useEffect(() => {
     registerNotificationChannels();
-  }, [])
+  }, []);
 
   const handleNotificationClick = useCallback(
     async (notification: any) => {
@@ -139,11 +142,7 @@ function App(): JSX.Element {
         onVideoClick={setVideoUrl}
       />
       <Show when={videoUrl}>
-        <CustomVideo
-          ref={videoRef}
-          videoUrl={videoUrl!}
-          onVideoEnd={() => setVideoUrl(null)}
-        />
+        <CustomVideo ref={videoRef} videoUrl={videoUrl!} />
       </Show>
     </>
   );
@@ -162,16 +161,16 @@ function useUpdateChecker() {
       'Update Available',
       `Current: ${env.APP_VERSION}\nLatest: ${release.tag_name}`,
       [
-      {text: 'Later'},
-      {
-        text: 'View Changelog',
-        onPress: onViewChangelog,
-      },
-      {
-        isPreferred: true,
-        text: 'Update Now',
-        onPress: onUpdateNow,
-      },
+        {text: 'Later'},
+        {
+          text: 'View Changelog',
+          onPress: onViewChangelog,
+        },
+        {
+          isPreferred: true,
+          text: 'Update Now',
+          onPress: onUpdateNow,
+        },
       ],
     );
   }, []);
