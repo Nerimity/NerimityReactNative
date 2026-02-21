@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@bicycle-codes/url-pattern": "^1.0.3",
+    "@material-symbols-react-native/rounded-300": "^1.0.0",
     "@notifee/react-native": "^7.8.0",
     "@react-native-clipboard/clipboard": "^1.14.1",
     "@react-native-firebase/app": "^20.1.0",
@@ -19,6 +20,7 @@
     "react": "18.2.0",
     "react-native": "0.74.3",
     "react-native-encrypted-storage": "^4.0.3",
+    "react-native-svg": "15.8",
     "react-native-track-player": "^4.1.1",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-video": "^6.4.2",
