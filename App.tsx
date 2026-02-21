@@ -142,7 +142,13 @@ function App(): JSX.Element {
         onVideoClick={setVideoUrl}
       />
       <Show when={videoUrl}>
-        <CustomVideo ref={videoRef} videoUrl={videoUrl!} />
+        <CustomVideo
+          ref={videoRef}
+          videoUrl={videoUrl!}
+          onVideoEnd={() => {
+            setVideoUrl(null);
+          }}
+        />
       </Show>
     </>
   );
