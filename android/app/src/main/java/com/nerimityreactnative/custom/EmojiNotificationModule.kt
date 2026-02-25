@@ -326,7 +326,8 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
         val connection = URL(url).openConnection()
         connection.connectTimeout = 5000
         connection.readTimeout = 5000
-        return connection.getInputStream().use { BitmapFactory.decodeStream(it) }
+        val bytes = connection.getInputStream().use { it.readBytes() }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     }
 
     private fun makeCircular(bitmap: Bitmap): Bitmap {
@@ -347,11 +348,7 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
     }
 
     private fun replaceEmojiPlaceholdersWithUnicode(text: String, placeholders: Set<String>): String {
-        var result = text
-        for (placeholder in placeholders) {
-            result = result.replace(placeholder, "\uD83D\uDDBC\uFE0F") // current emoji: 🖼️
-        }
-        return result
+        return text
     }
 
     private data class EmojiInfo(val placeholder: String, val url: String)

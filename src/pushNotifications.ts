@@ -118,7 +118,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     emojis = result.emojis;
   }
 
-  const bodyText = `${creatorName}: ${content}`;
+  const bodyText = `<b>${creatorName}</b>: ${content}`;
 
   EmojiNotificationModule.displayNotification({
     id: data.channelId,
@@ -165,7 +165,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
   EmojiNotificationModule.displayNotification({
     id: data.channelId,
     title: `<b>${sanitize(data.cName)}</b>`,
-    body: newLine,
+    body: `<b>${sanitize(data.cName)}</b>: ${newLine}`,
     emojis,
     channelId: ANDROID_CHANNELS.dmMessages,
     subText: 'Direct',
