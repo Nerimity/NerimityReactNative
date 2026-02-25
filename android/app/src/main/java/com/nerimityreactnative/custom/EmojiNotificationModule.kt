@@ -11,6 +11,8 @@ import android.text.Spanned
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -30,8 +32,19 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
         // channel id => list of (body, emojiBitmaps)
         private val messageHistory = mutableMapOf<String, MutableList<MessageEntry>>()
 
+        var pendingChannelId: String? = null
+        var pendingServerId: String? = null
+        var pendingUserId: String? = null
+
         fun clearHistory(channelId: String) {
             messageHistory.remove(channelId)
+        }
+
+        fun storeNotificationData(intent: android.content.Intent) {
+            val channelId = intent.getStringExtra("notif_channelId") ?: return
+            pendingChannelId = channelId
+            pendingServerId = intent.getStringExtra("notif_serverId")
+            pendingUserId = intent.getStringExtra("notif_userId")
         }
     }
 
@@ -55,6 +68,8 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
         val subText = if (params.hasKey("subText") && !params.isNull("subText")) params.getString("subText") else null
         val fallbackAvatarLetter = if (params.hasKey("fallbackAvatarLetter") && !params.isNull("fallbackAvatarLetter")) params.getString("fallbackAvatarLetter") else null
         val fallbackAvatarColor = if (params.hasKey("fallbackAvatarColor") && !params.isNull("fallbackAvatarColor")) params.getString("fallbackAvatarColor") else null
+        val serverId = if (params.hasKey("serverId") && !params.isNull("serverId")) params.getString("serverId") else null
+        val userId = if (params.hasKey("userId") && !params.isNull("userId")) params.getString("userId") else null
 
         val emojis = mutableListOf<EmojiInfo>()
         if (params.hasKey("emojis") && !params.isNull("emojis")) {
@@ -146,6 +161,9 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
                 val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
                     ?: Intent()
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                launchIntent.putExtra("notif_channelId", id)
+                serverId?.let { launchIntent.putExtra("notif_serverId", it) }
+                userId?.let { launchIntent.putExtra("notif_userId", it) }
                 val pendingIntent = PendingIntent.getActivity(
                     context, id.hashCode(), launchIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -184,6 +202,23 @@ class EmojiNotificationModule(reactContext: ReactApplicationContext) :
                     NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build())
                 } catch (_: SecurityException) {}
             }
+        }
+    }
+
+    @ReactMethod
+    fun getPendingNotificationClick(promise: Promise) {
+        val channelId = pendingChannelId
+        if (channelId != null) {
+            val map = Arguments.createMap()
+            map.putString("channelId", channelId)
+            pendingServerId?.let { map.putString("serverId", it) }
+            pendingUserId?.let { map.putString("userId", it) }
+            pendingChannelId = null
+            pendingServerId = null
+            pendingUserId = null
+            promise.resolve(map)
+        } else {
+            promise.resolve(null)
         }
     }
 

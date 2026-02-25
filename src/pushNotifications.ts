@@ -133,6 +133,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     circularLargeIcon: true,
     fallbackAvatarLetter: data.serverName?.charAt(0)?.toUpperCase() || '?',
     fallbackAvatarColor: data.sHexColor || '#7c7c7c',
+    serverId: data.serverId,
   });
 }
 
@@ -175,6 +176,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
     circularLargeIcon: true,
     fallbackAvatarLetter: data.cName?.charAt(0)?.toUpperCase() || '?',
     fallbackAvatarColor: data.uHexColor || '#7c7c7c',
+    userId: data.cUserId,
   });
 }
 
@@ -222,6 +224,17 @@ function formatMarkup(text: string): string {
   // color: [#hex]text => text
   text = text.replace(/\[#[0-9a-fA-F]{3,8}\]/g, '');
   return text;
+}
+
+export function getPendingNotificationClick(): Promise<{
+  channelId: string;
+  serverId?: string;
+  userId?: string;
+} | null> {
+  if (!EmojiNotificationModule?.getPendingNotificationClick) {
+    return Promise.resolve(null);
+  }
+  return EmojiNotificationModule.getPendingNotificationClick();
 }
 
 const CUSTOM_EMOJI_REGEX = /\[(?:w?a)?ce:(\d+):([^\]]+)\]/g;
