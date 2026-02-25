@@ -85,6 +85,11 @@ function App(): JSX.Element {
   );
 
   useEffect(() => {
+    // check if app was launched by tapping a native notification (cold start)
+    getPendingNotificationClick().then(data => {
+      if (data) handleNotificationClick({data});
+    });
+
     notifee.getInitialNotification().then(initN => {
       if (!initN?.notification) {
         return;
@@ -101,6 +106,10 @@ function App(): JSX.Element {
     );
 
     const event = AppState.addEventListener('focus', () => {
+      // check if app was resumed by tapping a native notification (background state)
+      getPendingNotificationClick().then(data => {
+        if (data) handleNotificationClick({data});
+      });
       if (backgroundClickedNotification) {
         handleNotificationClick(backgroundClickedNotification);
       }

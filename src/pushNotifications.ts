@@ -1,12 +1,11 @@
-import notifee, {
-  AndroidInboxStyle,
-  AndroidStyle,
-  AndroidVisibility,
-} from '@notifee/react-native';
+import notifee from '@notifee/react-native';
+import {NativeModules} from 'react-native';
 import env from './env';
 import {getUserId} from './EncryptedStore';
 import {dmChannelMatch, serverChannelMatch} from './UrlPatternMatchers';
 import {currentUrl} from './components/CustomWebView';
+
+const {EmojiNotificationModule} = NativeModules;
 
 export enum MessageType {
   CONTENT = 0,
@@ -80,24 +79,13 @@ export async function handlePushNotification(
 }
 
 export async function showServerPushNotification(data: ServerNotificationData) {
-  const existingNotification = await notifee
-    .getDisplayedNotifications()
-    .then(res => res.find(n => n.notification.id === data.channelId));
-
-  const selfUserId =
-    existingNotification?.notification?.data?.selfUserId || (await getUserId());
+  const selfUserId = await getUserId();
 
   if (selfUserId === data.cUserId) {
     return;
   }
 
-  const existingLines =
-    (existingNotification?.notification?.android?.style as AndroidInboxStyle)
-      ?.lines || [];
-
   const creatorName = sanitize(data.cName);
-
-  const username = `<b>${creatorName}:</b>`;
   let content = data.content;
 
   // lets assume its an image message
@@ -123,57 +111,38 @@ export async function showServerPushNotification(data: ServerNotificationData) {
     content = 'has started a call.';
   }
 
-  let newLines = [username, content];
+  let emojis: {placeholder: string; url: string}[] = [];
+  if (type === MessageType.CONTENT && data.content) {
+    const result = replaceCustomEmojisWithPlaceholders(data.content);
+    content = formatMarkup(sanitize(result.body));
+    emojis = result.emojis;
+  }
 
-  // Display a notification
-  await notifee.displayNotification({
+  const bodyText = `<b>${creatorName}</b>: ${content}`;
+
+  EmojiNotificationModule.displayNotification({
     id: data.channelId,
-    title: `<b>${sanitize(data.serverName)} #${sanitize(data.channelName)}</b>`,
-    body: newLines.join(' '),
-    data: {
-      selfUserId: selfUserId!,
-      channelId: data.channelId,
-      serverId: data.serverId,
-      userId: data.cUserId,
-    },
-    android: {
-      smallIcon: 'ic_stat_notify',
-      pressAction: {
-        id: 'default',
-      },
-      groupId: Math.random().toString(),
-      visibility: AndroidVisibility.PUBLIC,
-      circularLargeIcon: true,
-      channelId: ANDROID_CHANNELS.serverMessages,
-      ...(data.sAvatar
-        ? {largeIcon: `${env.NERIMITY_CDN}${data.sAvatar}`}
-        : undefined),
-      style: {
-        type: AndroidStyle.INBOX,
-        title: `<b>${sanitize(data.serverName)} #${sanitize(
-          data.channelName,
-        )}</b>`,
-        lines: [...existingLines, ...newLines].slice(-5),
-      },
-    },
+    title: `<b>${sanitize(data.serverName)} | #${sanitize(data.channelName)}</b>`,
+    body: bodyText,
+    emojis,
+    channelId: ANDROID_CHANNELS.serverMessages,
+    subText: sanitize(data.serverName),
+    largeIcon: data.sAvatar
+      ? `${env.NERIMITY_CDN}${data.sAvatar}`
+      : null,
+    circularLargeIcon: true,
+    fallbackAvatarLetter: data.serverName?.charAt(0)?.toUpperCase() || '?',
+    fallbackAvatarColor: data.sHexColor || '#7c7c7c',
+    serverId: data.serverId,
   });
 }
 
 export async function showDMNotificationData(data: DMNotificationData) {
-  const existingNotification = await notifee
-    .getDisplayedNotifications()
-    .then(res => res.find(n => n.notification.id === data.channelId));
-
-  const selfUserId =
-    existingNotification?.notification?.data?.selfUserId || (await getUserId());
+  const selfUserId = await getUserId();
 
   if (selfUserId === data.cUserId) {
     return;
   }
-
-  const existingLines =
-    (existingNotification?.notification?.android?.style as AndroidInboxStyle)
-      ?.lines || [];
 
   let newLine = sanitize(data.content);
 
@@ -187,34 +156,27 @@ export async function showDMNotificationData(data: DMNotificationData) {
     newLine = 'has started a call.';
   }
 
-  // Display a notification
-  await notifee.displayNotification({
+  let emojis: {placeholder: string; url: string}[] = [];
+  if (type === MessageType.CONTENT && data.content) {
+    const result = replaceCustomEmojisWithPlaceholders(data.content);
+    newLine = formatMarkup(sanitize(result.body));
+    emojis = result.emojis;
+  }
+
+  EmojiNotificationModule.displayNotification({
     id: data.channelId,
-    title: `<b>@${sanitize(data.cName)}</b>`,
-    body: newLine,
-    data: {
-      selfUserId: selfUserId!,
-      channelId: data.channelId,
-      userId: data.cUserId,
-    },
-    android: {
-      smallIcon: 'ic_stat_notify',
-      pressAction: {
-        id: 'default',
-      },
-      groupId: Math.random().toString(),
-      visibility: AndroidVisibility.PUBLIC,
-      circularLargeIcon: true,
-      channelId: ANDROID_CHANNELS.dmMessages,
-      ...(data.uAvatar
-        ? {largeIcon: `${env.NERIMITY_CDN}${data.uAvatar}`}
-        : undefined),
-      style: {
-        type: AndroidStyle.INBOX,
-        title: `<b>@${sanitize(data.cName)}</b>`,
-        lines: [...existingLines, newLine].slice(-5),
-      },
-    },
+    title: `<b>${sanitize(data.cName)}</b>`,
+    body: `<b>${sanitize(data.cName)}</b>: ${newLine}`,
+    emojis,
+    channelId: ANDROID_CHANNELS.dmMessages,
+    subText: 'Direct',
+    largeIcon: data.uAvatar
+      ? `${env.NERIMITY_CDN}${data.uAvatar}`
+      : null,
+    circularLargeIcon: true,
+    fallbackAvatarLetter: data.cName?.charAt(0)?.toUpperCase() || '?',
+    fallbackAvatarColor: data.uHexColor || '#7c7c7c',
+    userId: data.cUserId,
   });
 }
 
@@ -232,10 +194,84 @@ function sanitize(string?: string) {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
   } as const;
-  const reg = /[&<>"'/]/gi;
+  const reg = /[&<>]/g;
   return string.replace(reg, match => map[match as keyof typeof map]);
+}
+
+function formatMarkup(text: string): string {
+  // headers: # to ###### => bold
+  text = text.replace(/^#{1,6}\s+(.+)$/gm, '<b>$1</b>');
+  // spoiler: ||text|| => [spoiler]
+  text = text.replace(/\|\|(.+?)\|\|/g, '[spoiler]');
+  // bold+italic: ***text*** or ___text___
+  text = text.replace(/\*\*\*(.*?)\*\*\*/g, '<b><i>$1</i></b>');
+  text = text.replace(/___(.*?)___/g, '<b><i>$1</i></b>');
+  // bold: **text**
+  text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  // ttalic: *text* or _text_
+  text = text.replace(/\*([^*]+)\*/g, '<i>$1</i>');
+  text = text.replace(/(?<!\w)_([^_]+)_(?!\w)/g, '<i>$1</i>');
+  // strikethrough: ~~text~~
+  text = text.replace(/~~(.*?)~~/g, '<s>$1</s>');
+  // link: [text](url) => text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  // checkbox: -[ ] or -[x]
+  text = text.replace(/-\[ \]/g, '☐');
+  text = text.replace(/-\[x\]/g, '☑');
+  // timestamp: [tr:1234567] => [timestamp]
+  text = text.replace(/\[tr:\d+\]/g, '[timestamp]');
+  // color: [#hex]text => text
+  text = text.replace(/\[#[0-9a-fA-F]{3,8}\]/g, '');
+  return text;
+}
+
+export function getPendingNotificationClick(): Promise<{
+  channelId: string;
+  serverId?: string;
+  userId?: string;
+} | null> {
+  if (!EmojiNotificationModule?.getPendingNotificationClick) {
+    return Promise.resolve(null);
+  }
+  return EmojiNotificationModule.getPendingNotificationClick();
+}
+
+const CUSTOM_EMOJI_REGEX = /\[(?:w?a)?ce:(\d+):([^\]]+)\]/g;
+
+function getCustomEmojiUrl(emojiId: string, type: string): string {
+  const ext = type === 'ace' ? 'gif' : 'webp';
+  return `${env.NERIMITY_CDN}emojis/${emojiId}.${ext}`;
+}
+
+function extractAllCustomEmojis(
+  content: string,
+): {id: string; name: string; type: string}[] {
+  const results: {id: string; name: string; type: string}[] = [];
+  const regex = /\[((?:w?a)?ce):(\d+):([^\]]+)\]/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    results.push({id: match[2], name: match[3], type: match[1]});
+  }
+  return results;
+}
+
+function replaceCustomEmojisWithPlaceholders(content: string): {
+  body: string;
+  emojis: {placeholder: string; url: string}[];
+} {
+  const emojis: {placeholder: string; url: string}[] = [];
+  const seen = new Set<string>();
+  const allEmojis = extractAllCustomEmojis(content);
+
+  for (const emoji of allEmojis) {
+    const placeholder = `:${emoji.name}:`;
+    if (!seen.has(emoji.id)) {
+      seen.add(emoji.id);
+      emojis.push({placeholder, url: getCustomEmojiUrl(emoji.id, emoji.type)});
+    }
+  }
+
+  const body = content.replace(CUSTOM_EMOJI_REGEX, ':$2:');
+  return {body, emojis};
 }
