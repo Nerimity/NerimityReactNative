@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, BackHandler, Linking, Platform} from 'react-native';
+import {Alert, AppState, BackHandler, Linking, Platform, TouchableOpacity, Text, StyleSheet} from 'react-native';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import Show from './src/components/ui/Show';
 import {
   currentUrl,
@@ -9,7 +10,10 @@ import {
 import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
 import TrackPlayer from 'react-native-track-player';
 
-import {handlePushNotification, registerNotificationChannels} from './src/pushNotifications';
+import {
+  handlePushNotification,
+  registerNotificationChannels,
+} from './src/pushNotifications';
 
 import messaging, {
   FirebaseMessagingTypes,
@@ -40,18 +44,28 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
   }
 });
 
+function getUrl(useLatest: boolean) {
+  //if (env.DEV_MODE) { return env.DEV_URL + '/login'; }
+  const base = useLatest ? env.LATEST_URL : env.DEFAULT_URL;
+  return base + '/login';
+}
+
 function App(): JSX.Element {
   const videoRef = useRef<CustomVideoRef | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const webViewRef = useRef<CustomWebViewRef | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
+  const [startupUrl, setStartupUrl] = useState(getUrl(false));
   const runIfAuthenticated = useWaitFor(authenticated);
   useUpdateChecker();
 
   useEffect(() => {
     registerNotificationChannels();
-  }, [])
+    EncryptedStorage.getItem('useLatestURL').then(val => {
+      setStartupUrl(getUrl(val === 'true'));
+    }).catch(() => {});
+  }, []);
 
   const handleNotificationClick = useCallback(
     async (notification: any) => {
@@ -135,14 +149,21 @@ function App(): JSX.Element {
       <CustomWebView
         onAuthenticated={() => setAuthenticated(true)}
         ref={webViewRef}
-        url={url || 'https://nerimity.com/login'}
+        url={url || startupUrl}
         onVideoClick={setVideoUrl}
+        onUseLatestURL={useLatest => {
+          EncryptedStorage.setItem('useLatestURL', String(useLatest));
+          setStartupUrl(getUrl(useLatest));
+          setUrl(null);
+        }}
       />
       <Show when={videoUrl}>
         <CustomVideo
           ref={videoRef}
           videoUrl={videoUrl!}
-          onVideoEnd={() => setVideoUrl(null)}
+          onVideoEnd={() => {
+            setVideoUrl(null);
+          }}
         />
       </Show>
     </>
@@ -162,16 +183,16 @@ function useUpdateChecker() {
       'Update Available',
       `Current: ${env.APP_VERSION}\nLatest: ${release.tag_name}`,
       [
-      {text: 'Later'},
-      {
-        text: 'View Changelog',
-        onPress: onViewChangelog,
-      },
-      {
-        isPreferred: true,
-        text: 'Update Now',
-        onPress: onUpdateNow,
-      },
+        {text: 'Later'},
+        {
+          text: 'View Changelog',
+          onPress: onViewChangelog,
+        },
+        {
+          isPreferred: true,
+          text: 'Update Now',
+          onPress: onUpdateNow,
+        },
       ],
     );
   }, []);
