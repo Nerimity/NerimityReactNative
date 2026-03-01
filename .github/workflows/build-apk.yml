@@ -31,6 +31,9 @@ jobs:
         uses: SpicyPizza/create-envfile@v1.3
         with:
           envkey_SERVER_URL: "https://nerimity.com"
+          envkey_DEFAULT_URL: "https://nerimity.com"
+          envkey_LATEST_URL: "https://latest.nerimity.com"
+          envkey_DEV_URL: "http://local.nerimity.com:3000"
           envkey_DEV_MODE: "false"
           envkey_APP_VERSION: "dev"
           envkey_TURNSTILE_SITEKEY: "0x4AAAAAAABO1ilip_YaVHJk"

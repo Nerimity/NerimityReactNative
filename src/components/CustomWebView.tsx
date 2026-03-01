@@ -24,6 +24,7 @@ export interface CustomWebViewProps {
   url?: string | null;
   onVideoClick: (url: string) => void;
   onAuthenticated: (userId: string) => void;
+  onUseLatestURL: (useLatest: boolean) => void;
 }
 
 export let currentUrl = '';
@@ -146,8 +147,22 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           emit,
         };
 
+        const _cookieDesc = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie')
+          || Object.getOwnPropertyDescriptor(HTMLDocument.prototype, 'cookie');
+        if (_cookieDesc) {
+          Object.defineProperty(document, 'cookie', {
+            configurable: true,
+            set(v) {
+              _cookieDesc.set.call(this, v);
+              const m = v.match(/^([^=]+)=([^;]*)/);
+              if (m && m[1].trim() === 'useLatestURL') {
+                post('useLatestURL', {value: m[2]});
+              }
+            },
+            get() { return _cookieDesc.get.call(this); }
+          });
+        }
 
-      
       })();
 
       true; // note: this is required, or you'll sometimes get silent failures
@@ -190,6 +205,9 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       }
       if (event === 'pauseAudio') {
         TrackPlayer.pause();
+      }
+      if (event === 'useLatestURL') {
+        props.onUseLatestURL(payload?.value === 'true');
       }
       if (event === 'logout') {
         console.log('logged out');
