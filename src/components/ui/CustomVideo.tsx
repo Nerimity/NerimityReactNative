@@ -30,7 +30,6 @@ export const CustomVideo = forwardRef<CustomVideoRef, CustomVideoProps>(
         fullscreen
         playInBackground={false}
         style={styles.container}
-        onEnd={props.onVideoEnd}
       />
     );
   },
