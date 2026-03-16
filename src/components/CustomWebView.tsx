@@ -33,19 +33,20 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
 
     const [webViewCanGoBack, setWebViewCanGoBack] = useState(false);
 
-    useEffect(() => {
-      const dispose = AppState.addEventListener('change', state => {
-        const event = state === 'active' ? 'focus' : 'blur';
-        webViewRef.current?.injectJavaScript(`  
-          window.dispatchEvent(new Event('${event}'));
-          true;
-        `);
-      });
+useEffect(() => {
+  const subscription = AppState.addEventListener('change', state => {
+    const webEvent = state === 'active' ? 'focus' : 'blur';
+    
+    webViewRef.current?.injectJavaScript(`  
+      window.dispatchEvent(new Event('${webEvent}'));
+      true;
+    `);
+  });
 
-      return () => {
-        dispose.remove();
-      };
-    }, []);
+  return () => {
+    subscription.remove();
+  };
+}, []);
 
     const onWebViewReady = () => {
       webViewRef.current?.injectJavaScript(`

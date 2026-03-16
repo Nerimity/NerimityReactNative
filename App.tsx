@@ -107,12 +107,14 @@ function App(): JSX.Element {
       },
     );
 
-    const event = AppState.addEventListener('focus', () => {
-      if (backgroundClickedNotification) {
-        handleNotificationClick(backgroundClickedNotification);
-      }
-      backgroundClickedNotification = undefined;
-    });
+const event = AppState.addEventListener('change', (nextAppState) => {
+  if (nextAppState === 'active') {
+    if (backgroundClickedNotification) {
+      handleNotificationClick(backgroundClickedNotification);
+    }
+    backgroundClickedNotification = undefined;
+  }
+});
 
     return () => {
       disposeForegroundEvent();
