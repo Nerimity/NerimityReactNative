@@ -1,4 +1,8 @@
 export default {
+  textColor: '#ffffff',
+  messageContentColor: '#b3b3b3',
+  messageUsernameColor: '#ffffff',
+
   backgroundColor: '#131416',
   primaryColor: '#4c93ff',
   alertColor: '#eb6e6e',
