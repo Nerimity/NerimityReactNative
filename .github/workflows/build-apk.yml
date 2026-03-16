@@ -3,7 +3,8 @@ name: build-apk
 on:
   push:
     branches:
-      - '**'
+      - 'webview'
+      # - '**'
     tags-ignore:
       - 'v*'
 
