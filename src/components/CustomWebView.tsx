@@ -1,7 +1,7 @@
-import React, {useEffect} from 'react';
-import {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {StyleSheet} from 'react-native';
-import WebView, {WebViewMessageEvent} from 'react-native-webview';
+import React, { useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import messaging from '@react-native-firebase/messaging';
 
@@ -10,9 +10,8 @@ import TrackPlayer, {
   State,
   useTrackPlayerEvents,
 } from 'react-native-track-player';
-import {storeUserId, storeUserToken} from '../EncryptedStore';
-import {registerNotificationChannels} from '../pushNotifications';
-import {AppState} from 'react-native';
+import { storeUserId, storeUserToken } from '../EncryptedStore';
+import { AppState } from 'react-native';
 import env from '../env';
 
 export interface CustomWebViewRef {
@@ -167,21 +166,21 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
     });
 
     const onMessage = async (evt: WebViewMessageEvent) => {
-      const {event, payload} = JSON.parse(evt.nativeEvent.data);
+      const { event, payload } = JSON.parse(evt.nativeEvent.data);
       if (event === 'playVideo') {
-        const {url} = payload;
+        const { url } = payload;
         props.onVideoClick(url);
       }
       if (event === 'playAudio') {
-        const {url} = payload;
+        const { url } = payload;
         if (!url) {
           TrackPlayer.play();
           return;
         }
-        localRefs().emit('audioLoading', {url});
+        localRefs().emit('audioLoading', { url });
         await TrackPlayer.reset();
         await TrackPlayer.setPlayWhenReady(true);
-        TrackPlayer.add({url});
+        TrackPlayer.add({ url });
       }
       if (event === 'seekAudio') {
         const progress = payload;
@@ -198,14 +197,14 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       }
       if (event === 'authenticated') {
         props.onAuthenticated(payload);
-        const {userId, userToken} = payload;
+        const { userId, userToken } = payload;
         console.log('authenticated', userId);
         await storeUserId(userId);
         await storeUserToken(userToken);
 
         await messaging().registerDeviceForRemoteMessages();
         const token = await messaging().getToken();
-        localRefs().emit('registerFCM', {token});
+        localRefs().emit('registerFCM', { token });
       }
     };
 
@@ -221,8 +220,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         textInteractionEnabled={false}
         textZoom={100}
         style={styles.container}
-        source={{uri: props.url || 'https://nerimity.com/login'}}
-        onLoadProgress={({nativeEvent}) => {
+        source={{ uri: props.url || 'https://nerimity.com/login' }}
+        onLoadProgress={({ nativeEvent }) => {
           setWebViewCanGoBack(nativeEvent.canGoBack);
         }}
         onLoadEnd={onWebViewReady}

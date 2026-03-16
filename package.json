@@ -7,58 +7,45 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest",
-    "windows": "react-native run-windows"
+    "test": "jest"
   },
   "dependencies": {
     "@bicycle-codes/url-pattern": "^1.0.3",
-    "@notifee/react-native": "^7.8.0",
-    "@react-native-clipboard/clipboard": "^1.14.1",
-    "@react-native-firebase/app": "^20.1.0",
-    "@react-native-firebase/messaging": "^20.1.0",
-    "react": "18.2.0",
-    "react-native": "0.74.3",
+    "@notifee/react-native": "^9.1.8",
+    "@react-native-firebase/app": "^23.8.8",
+    "@react-native-firebase/messaging": "^23.8.8",
+    "@react-native/new-app-screen": "0.84.1",
+    "react": "19.2.3",
+    "react-native": "0.84.1",
+    "react-native-dotenv": "^3.4.11",
     "react-native-encrypted-storage": "^4.0.3",
-    "react-native-track-player": "^4.1.1",
-    "react-native-url-polyfill": "^2.0.0",
-    "react-native-video": "^6.4.2",
-    "react-native-webview": "^13.10.5"
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-track-player": "^5.0.0-alpha0-nightly-359af5a12d712d3b685530aed9b9625865a25d74",
+    "react-native-url-polyfill": "^3.0.0",
+    "react-native-video": "^6.19.1",
+    "react-native-webview": "^13.16.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/preset-env": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "@react-native/babel-preset": "0.74.85",
-    "@react-native/eslint-config": "0.74.85",
-    "@react-native/metro-config": "0.74.85",
-    "@react-native/typescript-config": "0.74.85",
-    "@types/react": "^18.2.6",
-    "@types/react-test-renderer": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "babel-jest": "^29.6.3",
-    "eslint": "^8.57.0",
-    "eslint-plugin-ft-flow": "^3.0.10",
-    "eslint-plugin-jest": "^28.6.0",
-    "eslint-plugin-react": "^7.34.3",
-    "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-react-native": "^4.1.0",
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.84.1",
+    "@react-native/eslint-config": "0.84.1",
+    "@react-native/metro-config": "0.84.1",
+    "@react-native/typescript-config": "0.84.1",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^19.2.0",
+    "@types/react-test-renderer": "^19.1.0",
+    "eslint": "^8.19.0",
     "jest": "^29.6.3",
-    "metro-config": "^0.73.9",
-    "prettier": "^2.8.8",
-    "react-native-dotenv": "^3.4.8",
-    "react-test-renderer": "18.2.0",
-    "typescript": "^5.5.3"
-  },
-  "overrides": {
-    "eslint-plugin-ft-flow": {
-      "eslint": "^8.56.0 || ^9.0.0"
-    },
-    "@react-native-clipboard/clipboard": {
-      "react-native": "~0.74.0",
-      "react-native-windows": "~0.74.0"
-    }
+    "prettier": "2.8.8",
+    "react-test-renderer": "19.2.3",
+    "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">= 22.11.0"
   }
 }
