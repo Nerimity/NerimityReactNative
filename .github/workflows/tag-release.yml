@@ -8,16 +8,15 @@ name: tag-release
 on:
   push:
     tags:
-      - "v*"
-
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: node:20
+    container: node:24
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up our JDK environment # setup JDK environment: mandatory as we need to build  android project
         uses: actions/setup-java@v3
         with:
@@ -38,12 +37,12 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
-          envkey_SERVER_URL: "https://nerimity.com"
-          envkey_DEV_MODE: "false"
+          envkey_SERVER_URL: 'https://nerimity.com'
+          envkey_DEV_MODE: 'false'
           envkey_APP_VERSION: ${{ steps.get_version.outputs.VERSION }}
-          envkey_TURNSTILE_SITEKEY: "0x4AAAAAAABO1ilip_YaVHJk"
-          envkey_EMOJI_URL: "https://nerimity.com/twemojis/"
-          envkey_NERIMITY_CDN: "https://cdn.nerimity.com/"
+          envkey_TURNSTILE_SITEKEY: '0x4AAAAAAABO1ilip_YaVHJk'
+          envkey_EMOJI_URL: 'https://nerimity.com/twemojis/'
+          envkey_NERIMITY_CDN: 'https://cdn.nerimity.com/'
 
       - name: Make Gradlew Executable
         run: cd android && chmod +x ./gradlew
@@ -54,7 +53,6 @@ jobs:
           VERSION_NAME="${VERSION_NAME#v}"
           cd android && ./gradlew assembleRelease --no-daemon -PVERSION_NAME="$VERSION_NAME"
 
-      
       - name: Sign app APK
         uses: r0adkll/sign-android-release@v1
         # ID used to access action output
@@ -66,18 +64,17 @@ jobs:
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
-          BUILD_TOOLS_VERSION: "34.0.0"
+          BUILD_TOOLS_VERSION: '35.0.0'
 
       - name: Rename and move apk
         run: |
           mv ${{steps.sign_app.outputs.signedReleaseFile}} $GITHUB_WORKSPACE/nerimity-${{ steps.get_version.outputs.VERSION }}.apk
 
-   
       - name: Publish Draft Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: 'marvinpinto/action-automatic-releases@latest'
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
           prerelease: false
           draft: false
           files: |
-              nerimity-${{ steps.get_version.outputs.VERSION }}.apk
+            nerimity-${{ steps.get_version.outputs.VERSION }}.apk

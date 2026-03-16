@@ -1,12 +1,19 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, BackHandler, Linking, Platform} from 'react-native';
+import React, { JSX, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  AppState,
+  BackHandler,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  View,
+} from 'react-native';
 import Show from './src/components/ui/Show';
 import {
-  currentUrl,
   CustomWebView,
   CustomWebViewRef,
 } from './src/components/CustomWebView';
-import {CustomVideo, CustomVideoRef} from './src/components/ui/CustomVideo';
+import { CustomVideo, CustomVideoRef } from './src/components/ui/CustomVideo';
 import TrackPlayer from 'react-native-track-player';
 
 import {
@@ -17,11 +24,11 @@ import {
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import notifee, {EventType, Notification} from '@notifee/react-native';
-import {getLatestRelease, Release} from './src/githubApi';
+import notifee, { EventType, Notification } from '@notifee/react-native';
+import { getLatestRelease, Release } from './src/githubApi';
 import env from './src/env';
-import {dmChannelMatch, serverChannelMatch} from './src/UrlPatternMatchers';
-import {openDMChannelRequest} from './src/services/UserService';
+import { openDMChannelRequest } from './src/services/UserService';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 TrackPlayer.setupPlayer();
 
@@ -36,8 +43,8 @@ messaging().onMessage(e => onMessageReceived(e, false));
 messaging().setBackgroundMessageHandler(e => onMessageReceived(e, true));
 
 let backgroundClickedNotification: Notification | undefined;
-notifee.onBackgroundEvent(async ({type, detail}) => {
-  const {notification} = detail;
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+  const { notification } = detail;
   if (type === EventType.PRESS) {
     backgroundClickedNotification = notification;
   }
@@ -93,7 +100,7 @@ function App(): JSX.Element {
     });
 
     const disposeForegroundEvent = notifee.onForegroundEvent(
-      ({type, detail}) => {
+      ({ type, detail }) => {
         if (type === EventType.PRESS) {
           handleNotificationClick(detail.notification);
         }
@@ -114,7 +121,9 @@ function App(): JSX.Element {
   }, [handleNotificationClick]);
 
   const onAndroidBackPress = useCallback(() => {
+    console.log('close 2');
     if (videoUrl) {
+      console.log('close 1');
       videoRef.current?.stopVideo();
       return true;
     }
@@ -123,34 +132,41 @@ function App(): JSX.Element {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      BackHandler.addEventListener('hardwareBackPress', onAndroidBackPress);
+      const sub = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onAndroidBackPress,
+      );
       return () => {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          onAndroidBackPress,
-        );
+        sub.remove();
       };
     }
   }, [onAndroidBackPress]);
 
   return (
-    <>
-      <CustomWebView
-        onAuthenticated={() => setAuthenticated(true)}
-        ref={webViewRef}
-        url={url || 'https://nerimity.com/login'}
-        onVideoClick={setVideoUrl}
-      />
-      <Show when={videoUrl}>
-        <CustomVideo
-          ref={videoRef}
-          videoUrl={videoUrl!}
-          onVideoEnd={() => {
-            setVideoUrl(null);
-          }}
-        />
-      </Show>
-    </>
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+          <CustomWebView
+            onAuthenticated={() => setAuthenticated(true)}
+            ref={webViewRef}
+            url={url || 'https://nerimity.com/login'}
+            onVideoClick={setVideoUrl}
+          />
+          <Show when={videoUrl}>
+            <CustomVideo
+              ref={videoRef}
+              videoUrl={videoUrl!}
+              onVideoEnd={() => {
+                setVideoUrl(null);
+              }}
+            />
+          </Show>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -167,7 +183,7 @@ function useUpdateChecker() {
       'Update Available',
       `Current: ${env.APP_VERSION}\nLatest: ${release.tag_name}`,
       [
-        {text: 'Later'},
+        { text: 'Later' },
         {
           text: 'View Changelog',
           onPress: onViewChangelog,
