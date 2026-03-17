@@ -1,5 +1,5 @@
 import React, { JSX, useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,11 +33,13 @@ function App(): JSX.Element {
     <SafeAreaProvider>
       <SafeAreaView style={{ backgroundColor: Colors.backgroundColor }}>
         <ScrollView>
-          <View style={{ gap: 8 }}>
-            {messages.map(message => (
-              <MessageItem key={message.id} message={message} />
-            ))}
-          </View>
+          <Text style={{ color: 'white' }}>
+            Hello
+            <View>
+              <Text style={{ color: 'red' }}>World!</Text>
+            </View>
+            test
+          </Text>
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

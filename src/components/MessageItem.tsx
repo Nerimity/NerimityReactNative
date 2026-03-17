@@ -8,10 +8,10 @@ export const MessageItem = (props: { message: RawMessage }) => {
   return (
     <View style={styles.messageItemContainer}>
       <Avatar size={40} resize={46} user={props.message.createdBy} />
-      <View>
+      <View style={styles.detailsContainer}>
         <Text style={styles.username}>{props.message.createdBy.username}</Text>
         <Text style={styles.contentText}>
-          <Markup text={'test **test**'} />
+          <Markup text={props.message.content || ''} message={props.message} />
         </Text>
       </View>
     </View>
@@ -31,5 +31,8 @@ const styles = StyleSheet.create({
   contentText: {
     fontSize: 16,
     color: Colors.messageContentColor,
+  },
+  detailsContainer: {
+    flex: 1,
   },
 });

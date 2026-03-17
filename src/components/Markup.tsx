@@ -5,9 +5,16 @@ import {
   Span,
   UnreachableCaseError,
 } from '@nerimity/nevula';
-import { RawMessage } from '../RawData';
-import { ReactElement, useMemo } from 'react';
-import { Text } from 'react-native';
+import { RawMessage, RawUser } from '../RawData';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import {
+  LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TextLayoutEvent,
+  View,
+} from 'react-native';
+import { Avatar } from './Avatar';
 
 export interface MarkupProps {
   text: string;
@@ -42,6 +49,34 @@ const sliceText = (
   return text;
 };
 
+type CustomEntity = Entity & { type: 'custom' };
+
+function transformCustomEntity(entity: CustomEntity, ctx: MarkupContext) {
+  const type = entity.params.type;
+  const expr = sliceText(ctx, entity.innerSpan, { countText: false });
+
+  switch (type) {
+    case '@': {
+      const message = ctx.props.message;
+      const user = message?.mentions?.find(u => u.id === expr);
+      ctx.textCount += expr.length;
+      return <Mention user={user!} />;
+    }
+    default: {
+      return <Text style={{ color: 'red' }}>{entity.type}</Text>;
+      // throw new UnreachableCaseError(entity as never);
+    }
+  }
+}
+
+const Mention = (props: { user: RawUser }) => {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Text style={{ color: 'white' }}>{props.user.username}</Text>
+    </View>
+  );
+};
+
 function transformEntity(entity: Entity, ctx: MarkupContext): ReactElement {
   switch (entity.type) {
     case 'text': {
@@ -51,18 +86,41 @@ function transformEntity(entity: Entity, ctx: MarkupContext): ReactElement {
         return <Text>{sliceText(ctx, entity.innerSpan)}</Text>;
       }
     }
-    case 'bold': {
+    case 'bold':
+    case 'italic':
+    case 'underline':
+    case 'strikethrough': {
       return (
-        <Text style={{ fontWeight: 'bold' }}>
+        <Text style={styles[entity.type]}>
           {transformEntities(entity, ctx)}
         </Text>
       );
     }
+
+    case 'custom': {
+      return transformCustomEntity(entity, ctx);
+    }
     default: {
-      throw new UnreachableCaseError(entity as never);
+      return <Text style={{ color: 'red' }}>{entity.type}</Text>;
+      // throw new UnreachableCaseError(entity as never);
     }
   }
 }
+
+const styles = StyleSheet.create({
+  bold: {
+    fontWeight: 'bold',
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  underline: {
+    textDecorationLine: 'underline',
+  },
+  strikethrough: {
+    textDecorationLine: 'line-through',
+  },
+});
 
 export function Markup(props: MarkupProps) {
   const output = useMemo(() => {
