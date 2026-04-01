@@ -3,6 +3,7 @@ import {
   Alert,
   AppState,
   BackHandler,
+  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -57,6 +58,8 @@ function App(): JSX.Element {
   const [authenticated, setAuthenticated] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
   const runIfAuthenticated = useWaitFor(authenticated);
+  const [behaviour, setBehaviour] = useState<'padding' | undefined>('padding');
+
   useUpdateChecker();
 
   useEffect(() => {
@@ -142,12 +145,26 @@ function App(): JSX.Element {
     }
   }, [onAndroidBackPress]);
 
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', () => {
+      setBehaviour('padding');
+    });
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setBehaviour(undefined);
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
+          behavior={Platform.OS === 'android' ? behaviour : undefined}
         >
           <CustomWebView
             onAuthenticated={() => setAuthenticated(true)}
