@@ -6,7 +6,13 @@ import {
   UnreachableCaseError,
 } from '@nerimity/nevula';
 import { RawMessage, RawUser } from '../RawData';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import React, {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -15,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import { Avatar } from './Avatar';
+import * as MeasureText from '@domir/react-native-measure-text/src/ReactNativeMeasureText';
 
 export interface MarkupProps {
   text: string;
@@ -70,9 +77,27 @@ function transformCustomEntity(entity: CustomEntity, ctx: MarkupContext) {
 }
 
 const Mention = (props: { user: RawUser }) => {
+  const [width, setWidth] = useState(0);
+  const targetRef = React.useRef(null);
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={{ color: 'white' }}>{props.user.username}</Text>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'blue',
+        width: width + 10,
+      }}
+    >
+      <Avatar user={props.user} size={10} />
+      <Text>{props.user.username}</Text>
+      <Text
+        onTextLayout={e => setWidth(e.nativeEvent.lines[0].width)}
+        style={{ color: 'red', position: 'absolute', opacity: 0 }}
+        ref={targetRef}
+      >
+        {props.user.username}
+      </Text>
     </View>
   );
 };
