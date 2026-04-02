@@ -22,8 +22,11 @@ import {
   registerNotificationChannels,
 } from './src/pushNotifications';
 
-import messaging, {
+import {
+  setBackgroundMessageHandler,
+  onMessage,
   FirebaseMessagingTypes,
+  getMessaging,
 } from '@react-native-firebase/messaging';
 import notifee, { EventType, Notification } from '@notifee/react-native';
 import { getLatestRelease, Release } from './src/githubApi';
@@ -40,8 +43,8 @@ async function onMessageReceived(
   handlePushNotification(message.data as any, isBackground);
 }
 
-messaging().onMessage(e => onMessageReceived(e, false));
-messaging().setBackgroundMessageHandler(e => onMessageReceived(e, true));
+onMessage(getMessaging(), e => onMessageReceived(e, false));
+setBackgroundMessageHandler(getMessaging(), e => onMessageReceived(e, true));
 
 let backgroundClickedNotification: Notification | undefined;
 notifee.onBackgroundEvent(async ({ type, detail }) => {
@@ -169,7 +172,8 @@ function App(): JSX.Element {
           <CustomWebView
             onAuthenticated={() => setAuthenticated(true)}
             ref={webViewRef}
-            url={url || 'https://nerimity.com/login'}
+            url={url || 'http://192.168.1.53:3000/login'}
+            // url={url || 'https://nerimity.com/login'}
             onVideoClick={setVideoUrl}
           />
           <Show when={videoUrl}>

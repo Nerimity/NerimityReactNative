@@ -3,7 +3,12 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import messaging from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  getToken,
+  registerDeviceForRemoteMessages,
+  unregisterDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging';
 
 import TrackPlayer, {
   Event,
@@ -13,6 +18,7 @@ import TrackPlayer, {
 import { storeUserId, storeUserToken } from '../EncryptedStore';
 import { AppState } from 'react-native';
 import env from '../env';
+import { io, Socket } from 'socket.io-client';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
@@ -64,7 +70,6 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           return true;
         },
         emit: (event: string, payload: any) => {
-          console.log('Emitting', event);
           webViewRef.current?.injectJavaScript(`
           window.reactNative.emit('${event}', ${JSON.stringify(payload)});
           true;
@@ -132,6 +137,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         }
       
         window.reactNative = {
+          post,
           isReactNative: true,
           version: "${env.APP_VERSION || 'dev'}",
           playVideo,
@@ -165,8 +171,61 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       }
     });
 
+    let socket = useRef<Socket>(null);
     const onMessage = async (evt: WebViewMessageEvent) => {
       const { event, payload } = JSON.parse(evt.nativeEvent.data);
+
+      if (event === 'sio_connect') {
+        const { url } = payload;
+        socket.current?.disconnect();
+        socket.current?.removeAllListeners();
+        socket.current = io(url, {
+          transports: ['websocket'],
+        });
+        socket.current.on('connect', () => {
+          console.log('connected');
+          localRefs().emit('sio_event', {
+            event: 'connect',
+            payload: { id: socket.current?.id },
+          });
+        });
+        socket.current.on('disconnect', (reason, description) => {
+          console.log('disconnected', reason, description);
+          localRefs().emit('sio_event', {
+            event: 'disconnect',
+            payload: { reason, description },
+          });
+        });
+        socket.current.io.on('reconnect_attempt', attempt => {
+          console.log('reconnect_attempt', attempt);
+          localRefs().emit('sio_event', {
+            event: 'reconnect_attempt',
+            payload: { attempt },
+          });
+        });
+
+        socket.current.onAny((...args) => {
+          const [sEvent, sPayload] = args;
+          console.log('socket event', sEvent);
+
+          if (sPayload instanceof ArrayBuffer) {
+            const buff = Array.from(new Uint8Array(sPayload));
+            localRefs().emit('sio_event', {
+              event: 'user:authenticated',
+              payload: buff,
+              type: 'binary',
+            });
+          } else {
+            localRefs().emit('sio_event', { event: sEvent, payload: sPayload });
+          }
+        });
+      }
+      if (event === 'sio_emit') {
+        const { event: socketEvent, payload: socketPayload } = payload;
+        console.log('emitting', socketEvent);
+        socket.current?.emit(socketEvent, socketPayload);
+      }
+
       if (event === 'playVideo') {
         const { url } = payload;
         props.onVideoClick(url);
@@ -193,7 +252,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       if (event === 'logout') {
         console.log('logged out');
         await EncryptedStorage.clear();
-        await messaging().unregisterDeviceForRemoteMessages();
+        await unregisterDeviceForRemoteMessages(getMessaging());
       }
       if (event === 'authenticated') {
         props.onAuthenticated(payload);
@@ -202,8 +261,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         await storeUserId(userId);
         await storeUserToken(userToken);
 
-        await messaging().registerDeviceForRemoteMessages();
-        const token = await messaging().getToken();
+        await registerDeviceForRemoteMessages(getMessaging());
+        const token = await getToken(getMessaging());
         localRefs().emit('registerFCM', { token });
       }
     };
@@ -218,6 +277,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         allowsFullscreenVideo={true}
         setBuiltInZoomControls={false}
         textInteractionEnabled={false}
+        webviewDebuggingEnabled
         textZoom={100}
         style={styles.container}
         source={{ uri: props.url || 'https://nerimity.com/login' }}
