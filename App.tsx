@@ -172,8 +172,8 @@ function App(): JSX.Element {
           <CustomWebView
             onAuthenticated={() => setAuthenticated(true)}
             ref={webViewRef}
-            url={url || 'http://192.168.1.53:3000/login'}
-            // url={url || 'https://nerimity.com/login'}
+            // url={url || 'http://192.168.1.53:3000/login'}
+            url={url || 'https://nerimity.com/login'}
             onVideoClick={setVideoUrl}
           />
           <Show when={videoUrl}>
