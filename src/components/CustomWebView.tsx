@@ -36,6 +36,7 @@ export let currentUrl = '';
 export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
   (props, ref) => {
     const webViewRef = useRef<WebView | null>(null);
+    let socket = useRef<Socket>(null);
 
     const [webViewCanGoBack, setWebViewCanGoBack] = useState(false);
 
@@ -46,6 +47,10 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           window.dispatchEvent(new Event('${event}'));
           true;
         `);
+
+        if (state === 'active') {
+          socket.current?.connect();
+        }
       });
 
       return () => {
@@ -171,7 +176,6 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       }
     });
 
-    let socket = useRef<Socket>(null);
     const onMessage = async (evt: WebViewMessageEvent) => {
       const { event, payload } = JSON.parse(evt.nativeEvent.data);
 
@@ -190,6 +194,9 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           });
         });
         socket.current.on('disconnect', (reason, description) => {
+          if (AppState.currentState !== 'active') {
+            socket.current?.disconnect();
+          }
           console.log('disconnected', reason, description);
           localRefs().emit('sio_event', {
             event: 'disconnect',
