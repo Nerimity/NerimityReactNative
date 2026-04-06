@@ -33,6 +33,11 @@ import { getLatestRelease, Release } from './src/githubApi';
 import env from './src/env';
 import { openDMChannelRequest } from './src/services/UserService';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CallUI } from './src/components/CallUI';
+import { SocketProvider } from './src/SocketProvider';
+import { CallProvider } from './src/CallProvider';
+import { WebViewProvider } from './src/WebViewProvider';
+import { UserStoreProvider } from './src/UserStoreProvider';
 
 TrackPlayer.setupPlayer();
 
@@ -163,31 +168,40 @@ function App(): JSX.Element {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'black' }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'android' ? behaviour : undefined}
-        >
-          <CustomWebView
-            onAuthenticated={() => setAuthenticated(true)}
-            ref={webViewRef}
-            // url={url || 'http://192.168.1.53:3000/login'}
-            url={url || 'https://nerimity.com/login'}
-            onVideoClick={setVideoUrl}
-          />
-          <Show when={videoUrl}>
-            <CustomVideo
-              ref={videoRef}
-              videoUrl={videoUrl!}
-              onVideoEnd={() => {
-                setVideoUrl(null);
-              }}
-            />
-          </Show>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
+    <UserStoreProvider>
+      <WebViewProvider>
+        <SocketProvider>
+          <CallProvider>
+            <View style={{ flex: 1, backgroundColor: 'black' }}>
+              <SafeAreaView style={{ flex: 1 }}>
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior={Platform.OS === 'android' ? behaviour : undefined}
+                >
+                  <CallUI />
+                  <CustomWebView
+                    onAuthenticated={() => setAuthenticated(true)}
+                    ref={webViewRef}
+                    // url={url || 'http://192.168.1.53:3000/login'}
+                    url={url || 'https://nerimity.com/login'}
+                    onVideoClick={setVideoUrl}
+                  />
+                  <Show when={videoUrl}>
+                    <CustomVideo
+                      ref={videoRef}
+                      videoUrl={videoUrl!}
+                      onVideoEnd={() => {
+                        setVideoUrl(null);
+                      }}
+                    />
+                  </Show>
+                </KeyboardAvoidingView>
+              </SafeAreaView>
+            </View>
+          </CallProvider>
+        </SocketProvider>
+      </WebViewProvider>
+    </UserStoreProvider>
   );
 }
 

@@ -15,6 +15,7 @@
     "@react-native-firebase/app": "^23.8.8",
     "@react-native-firebase/messaging": "^23.8.8",
     "@react-native/new-app-screen": "0.84.1",
+    "fzstd": "^0.1.1",
     "react": "19.2.3",
     "react-native": "0.84.1",
     "react-native-dotenv": "^3.4.11",
@@ -23,8 +24,10 @@
     "react-native-track-player": "^5.0.0-alpha0-nightly-359af5a12d712d3b685530aed9b9625865a25d74",
     "react-native-url-polyfill": "^3.0.0",
     "react-native-video": "^6.19.1",
+    "react-native-webrtc": "^124.0.7",
     "react-native-webview": "^13.16.1",
-    "socket.io-client": "^4.8.3"
+    "socket.io-client": "^4.8.3",
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -18,7 +18,12 @@ import TrackPlayer, {
 import { storeUserId, storeUserToken } from '../EncryptedStore';
 import { AppState } from 'react-native';
 import env from '../env';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import { useSocket } from '../SocketProvider';
+import { decompressObject } from '../zstd';
+import { useCall } from '../CallProvider';
+import { useWebView } from '../WebViewProvider';
+import { User, useUserStore } from '../UserStoreProvider';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
@@ -35,8 +40,11 @@ export let currentUrl = '';
 
 export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
   (props, ref) => {
+    const { setCurrentUrl } = useWebView();
     const webViewRef = useRef<WebView | null>(null);
-    let socket = useRef<Socket>(null);
+    const { setVoiceUsers } = useCall();
+    const { socket, setSocket } = useSocket();
+    const { setUsers } = useUserStore();
 
     const [webViewCanGoBack, setWebViewCanGoBack] = useState(false);
 
@@ -49,14 +57,14 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         `);
 
         if (state === 'active') {
-          socket.current?.connect();
+          socket?.connect();
         }
       });
 
       return () => {
         dispose.remove();
       };
-    }, []);
+    }, [socket]);
 
     const onWebViewReady = () => {
       webViewRef.current?.injectJavaScript(`
@@ -181,21 +189,23 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
 
       if (event === 'sio_connect') {
         const { url } = payload;
-        socket.current?.disconnect();
-        socket.current?.removeAllListeners();
-        socket.current = io(url, {
+        socket?.disconnect();
+        socket?.removeAllListeners();
+        let newSocket = io(url, {
           transports: ['websocket'],
         });
-        socket.current.on('connect', () => {
+        setSocket(newSocket);
+
+        newSocket.on('connect', () => {
           console.log('connected');
           localRefs().emit('sio_event', {
             event: 'connect',
-            payload: { id: socket.current?.id },
+            payload: { id: newSocket.id },
           });
         });
-        socket.current.on('disconnect', (reason, description) => {
+        newSocket.on('disconnect', (reason, description) => {
           if (AppState.currentState !== 'active') {
-            socket.current?.disconnect();
+            newSocket.disconnect();
           }
           console.log('disconnected', reason, description);
           localRefs().emit('sio_event', {
@@ -203,7 +213,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
             payload: { reason, description },
           });
         });
-        socket.current.io.on('reconnect_attempt', attempt => {
+        newSocket.io.on('reconnect_attempt', attempt => {
           console.log('reconnect_attempt', attempt);
           localRefs().emit('sio_event', {
             event: 'reconnect_attempt',
@@ -211,26 +221,43 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           });
         });
 
-        socket.current.onAny((...args) => {
+        newSocket.onAny((...args) => {
           const [sEvent, sPayload] = args;
-          console.log('socket event', sEvent);
+          let decompressed: any = null;
+          // console.log('socket event', sEvent);
 
           if (sPayload instanceof ArrayBuffer) {
-            const buff = Array.from(new Uint8Array(sPayload));
+            decompressed = decompressObject<any>(new Uint8Array(sPayload));
             localRefs().emit('sio_event', {
-              event: 'user:authenticated',
-              payload: buff,
-              type: 'binary',
+              event: sEvent, //
+              payload: decompressed,
             });
+            setVoiceUsers(decompressed.voiceChannelUsers);
           } else {
             localRefs().emit('sio_event', { event: sEvent, payload: sPayload });
+          }
+          if (sEvent === 'user:authenticated') {
+            const pld = decompressed || sPayload;
+            setVoiceUsers(pld.voiceChannelUsers);
+            let users: Record<string, User> = {};
+            pld.serverMembers.forEach((sm: { user: User }) => {
+              users[sm.user.id] = sm.user;
+            });
+            pld.inbox.forEach((inbox: { recipient: User }) => {
+              users[inbox.recipient.id] = inbox.recipient;
+            });
+            pld.friends.forEach((f: { recipient: User }) => {
+              users[f.recipient.id] = f.recipient;
+            });
+            users[pld.user.id] = pld.user;
+            setUsers(users);
           }
         });
       }
       if (event === 'sio_emit') {
         const { event: socketEvent, payload: socketPayload } = payload;
-        console.log('emitting', socketEvent);
-        socket.current?.emit(socketEvent, socketPayload);
+        // console.log('emitting', socketEvent);
+        socket?.emit(socketEvent, socketPayload);
       }
 
       if (event === 'playVideo') {
@@ -258,6 +285,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
       }
       if (event === 'logout') {
         console.log('logged out');
+        socket?.removeAllListeners();
+        socket?.disconnect();
         await EncryptedStorage.clear();
         await unregisterDeviceForRemoteMessages(getMessaging());
       }
@@ -294,6 +323,8 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         onLoadEnd={onWebViewReady}
         onNavigationStateChange={state => {
           currentUrl = state.url;
+          setCurrentUrl(currentUrl);
+          console.log(state.url);
         }}
         onMessage={onMessage}
       />
