@@ -25,7 +25,7 @@ interface SignalPayload {
 
 const CallContext = createContext<CallContextValue | null>(null);
 
-interface VoiceUser {
+export interface VoiceUser {
   userId: string;
   channelId: string;
   serverId: null | string;
@@ -44,16 +44,26 @@ export const CallProvider = (props: { children: JSX.Element }) => {
     voiceUser: VoiceUser,
   ) => {
     setVoiceUsers(prev => {
-      const filtered = prev.filter(
-        u => u.userId !== userId || u.channelId !== channelId,
+      const exists = prev.some(
+        u => u.userId === userId && u.channelId === channelId,
       );
-      return [...filtered, voiceUser];
+      if (exists) {
+        return prev.map(u =>
+          u.userId === userId && u.channelId === channelId ? voiceUser : u,
+        );
+      }
+      return [...prev, voiceUser];
     });
   };
 
   useSocketListener(
     'voice:user_left',
-    (data: { channelId: string; userId: string }) => {
+    async (data: { channelId: string; userId: string }) => {
+      if ((await getUserId()) === data.userId) {
+        if (joinedChannelId === data.channelId) {
+          leaveCall();
+        }
+      }
       const voice = voiceUsers.find(
         u => u.userId === data.userId && u.channelId === data.channelId,
       );
@@ -180,18 +190,22 @@ export const CallProvider = (props: { children: JSX.Element }) => {
       }),
     }).then(res => {
       if (res.ok) {
-        setVoiceUsers(prev => {
-          return prev.map(u => {
-            u.peer?.destroy();
-            u.peer = undefined;
-            u.connected = false;
-            return u;
-          });
-        });
-        setJoinedChannelId(null);
+        leaveCall();
       }
     });
   }, [socket, joinedChannelId]);
+
+  const leaveCall = () => {
+    setVoiceUsers(prev => {
+      return prev.map(u => {
+        u.peer?.destroy();
+        u.peer = undefined;
+        u.connected = false;
+        return u;
+      });
+    });
+    setJoinedChannelId(null);
+  };
 
   const value = {
     joinCall,

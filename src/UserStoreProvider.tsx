@@ -3,6 +3,8 @@ import { createContext, JSX, useContext, useState } from 'react';
 export interface User {
   id: string;
   username: string;
+  avatar?: string;
+  hexColor: string;
 }
 
 interface UserStoreContextValue {
