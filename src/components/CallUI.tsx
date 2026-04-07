@@ -33,9 +33,9 @@ export const CallUI = () => {
     );
   };
 
-  const handleCall = async () => {
-    call.joinCall(currentChannelId() || '');
-  };
+  // const handleCall = async () => {
+  //   call.joinCall(currentChannelId() || '');
+  // };
   const handleEndCall = async () => {
     call.endCall();
   };
@@ -51,11 +51,18 @@ export const CallUI = () => {
           />
         ))}
       </View>
-      {call.joinedChannelId !== currentChannelId() ? (
+      {/* {call.joinedChannelId !== currentChannelId() ? (
         <Button title="Call" onPress={handleCall} />
       ) : (
         <Button title="End Call" onPress={handleEndCall} />
-      )}
+      )} */}
+
+      {call.joinedChannelId ? (
+        <View>
+          <Button title="End Call" onPress={handleEndCall} />
+          <Button title="Toggle Speaker" onPress={call.toggleSpeaker} />
+        </View>
+      ) : null}
     </View>
   ) : null;
 };

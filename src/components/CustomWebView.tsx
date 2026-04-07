@@ -41,6 +41,7 @@ export let currentUrl = '';
 export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
   (props, ref) => {
     const { setCurrentUrl } = useWebView();
+    const call = useCall();
     const webViewRef = useRef<WebView | null>(null);
     const { setVoiceUsers } = useCall();
     const { socket, setSocket } = useSocket();
@@ -148,6 +149,10 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const seekAudio = (progress) => {
           post('seekAudio', progress);
         }
+
+        const joinCall = (channelId) => {
+          post('joinCall', {channelId});
+        }
       
         window.reactNative = {
           post,
@@ -155,6 +160,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
           version: "${env.APP_VERSION || 'dev'}",
           playVideo,
           playAudio,
+          joinCall,
           pauseAudio,
           seekAudio,
           authenticated,
@@ -258,6 +264,10 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const { event: socketEvent, payload: socketPayload } = payload;
         // console.log('emitting', socketEvent);
         socket?.emit(socketEvent, socketPayload);
+      }
+      if (event === 'joinCall') {
+        const { channelId } = payload;
+        call.joinCall(channelId);
       }
 
       if (event === 'playVideo') {

@@ -1,12 +1,22 @@
-import { createContext, JSX, useCallback, useContext, useState } from 'react';
+import {
+  createContext,
+  JSX,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { useSocket, useSocketListener } from './SocketProvider';
 import { getUserId, getUserToken } from './EncryptedStore';
 import { SimplePeer, SimplePeerSignalData } from './SimplePeer';
+import inCallManager from 'react-native-incall-manager';
+import { mediaDevices, MediaStream } from 'react-native-webrtc';
 
 type CallContextValue = {
   joinCall: (channelId: string) => Promise<void>;
   endCall: () => void;
   setVoiceUsers: (users: VoiceUser[]) => void;
+  toggleSpeaker: () => void;
   voiceUsers: VoiceUser[];
   joinedChannelId: string | null;
 };
@@ -36,7 +46,22 @@ export interface VoiceUser {
 export const CallProvider = (props: { children: JSX.Element }) => {
   const [joinedChannelId, setJoinedChannelId] = useState<string | null>(null);
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([]);
+  const peersRef = useRef<Map<string, SimplePeer>>(new Map());
+
   const { socket } = useSocket();
+
+  const peerKey = (channelId: string, userId: string) =>
+    `${channelId}:${userId}`;
+
+  const micStreamRef = useRef<MediaStream | null>(null);
+
+  const [isSpeaker, setIsSpeaker] = useState(false);
+
+  const toggleSpeaker = () => {
+    const next = !isSpeaker;
+    inCallManager.setForceSpeakerphoneOn(next);
+    setIsSpeaker(next);
+  };
 
   const setVoiceChannelUser = (
     channelId: string,
@@ -64,10 +89,11 @@ export const CallProvider = (props: { children: JSX.Element }) => {
           leaveCall();
         }
       }
-      const voice = voiceUsers.find(
-        u => u.userId === data.userId && u.channelId === data.channelId,
-      );
-      if (voice?.peer) voice.peer.destroy();
+
+      const key = peerKey(data.channelId, data.userId);
+
+      peersRef.current.get(key)?.destroy();
+      peersRef.current.delete(key);
       setVoiceUsers(prev =>
         prev.filter(
           u => u.userId !== data.userId || u.channelId !== data.channelId,
@@ -86,11 +112,16 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   });
 
   const createPeer = (voiceUser: VoiceUser, signal?: SimplePeerSignalData) => {
+    const key = peerKey(voiceUser.channelId, voiceUser.userId);
+    const existingPeer = peersRef.current.get(key);
+
+    console.log(micStreamRef.current);
     const peer =
-      voiceUser.peer ||
+      existingPeer ||
       new SimplePeer({
         trickle: true,
         initiator: !signal,
+        stream: micStreamRef.current!,
         config: {
           iceServers: [
             {
@@ -99,7 +130,9 @@ export const CallProvider = (props: { children: JSX.Element }) => {
           ],
         },
       });
-    if (!voiceUser.peer) {
+    if (!existingPeer) {
+      peersRef.current.set(key, peer);
+
       setVoiceChannelUser(voiceUser.channelId, voiceUser.userId, {
         ...voiceUser,
         peer,
@@ -140,9 +173,18 @@ export const CallProvider = (props: { children: JSX.Element }) => {
 
   useSocketListener('voice:signal_received', (data: SignalPayload) => {
     console.log('SIGNAL RECEIVED', data);
+
+    const key = peerKey(data.channelId, data.fromUserId);
+    const existingPeer = peersRef.current.get(key);
+
     const voiceUser = voiceUsers.find(
       u => u.userId === data.fromUserId && u.channelId === data.channelId,
     );
+
+    if (existingPeer) {
+      existingPeer.signal(data.signal);
+      return;
+    }
     if (voiceUser) {
       createPeer(voiceUser, data.signal);
     }
@@ -150,14 +192,17 @@ export const CallProvider = (props: { children: JSX.Element }) => {
 
   const joinCall = useCallback(
     async (channelId: string) => {
-      setJoinedChannelId(null);
-      setVoiceUsers(prev => {
-        return prev.map(u => {
-          u.peer?.destroy();
-          u.peer = undefined;
-          return u;
-        });
+      leaveCall();
+      const stream = await mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
       });
+      console.log(stream);
+      micStreamRef.current = stream;
+      inCallManager.start({ media: 'audio' });
+
+      setIsSpeaker(false);
+      inCallManager.setForceSpeakerphoneOn(false);
       const token = await getUserToken();
       fetch(`https://nerimity.com/api/channels/${channelId}/voice/join`, {
         method: 'POST',
@@ -178,6 +223,8 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   );
 
   const endCall = useCallback(async () => {
+    leaveCall();
+
     const token = await getUserToken();
     fetch(`https://nerimity.com/api/channels/${joinedChannelId}/voice/leave`, {
       method: 'POST',
@@ -188,23 +235,22 @@ export const CallProvider = (props: { children: JSX.Element }) => {
       body: JSON.stringify({
         socketId: socket?.id,
       }),
-    }).then(res => {
-      if (res.ok) {
-        leaveCall();
-      }
     });
   }, [socket, joinedChannelId]);
 
   const leaveCall = () => {
+    peersRef.current.forEach(peer => peer.destroy());
+    peersRef.current.clear();
+
     setVoiceUsers(prev => {
       return prev.map(u => {
-        u.peer?.destroy();
-        u.peer = undefined;
-        u.connected = false;
-        return u;
+        return { ...u, connected: false, peer: undefined };
       });
     });
     setJoinedChannelId(null);
+    inCallManager.stop();
+    micStreamRef.current?.getTracks().forEach(t => t.stop());
+    micStreamRef.current = null;
   };
 
   const value = {
@@ -213,6 +259,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
     voiceUsers,
     joinedChannelId,
     endCall,
+    toggleSpeaker,
   } as CallContextValue;
 
   return (

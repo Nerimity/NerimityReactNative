@@ -184,9 +184,10 @@ export class SimplePeer {
 
   public destroy(): this {
     if (this.destroyed) {
+      console.log('already destroyed');
       return this;
     }
-
+    console.log('destroying peer');
     this.destroyed = true;
     this.connected = false;
     this.channel?.close();
