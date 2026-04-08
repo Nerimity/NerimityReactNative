@@ -3,6 +3,7 @@ import {
   JSX,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -11,6 +12,10 @@ import { getUserId, getUserToken } from './EncryptedStore';
 import { SimplePeer, SimplePeerSignalData } from './SimplePeer';
 import inCallManager from 'react-native-incall-manager';
 import { mediaDevices, MediaStream } from 'react-native-webrtc';
+
+// https://stackoverflow.com/questions/63432839/how-to-prevent-socket-io-from-disconnecting-when-react-native-app-is-in-backgrou
+import BackgroundTimer, { IntervalId } from 'react-native-background-timer';
+import { AppState, AppStateStatus } from 'react-native';
 
 type CallContextValue = {
   joinCall: (channelId: string) => Promise<void>;
@@ -48,6 +53,9 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([]);
   const peersRef = useRef<Map<string, SimplePeer>>(new Map());
 
+  const appState = useRef(AppState.currentState);
+  const interval = useRef<IntervalId>(0);
+
   const { socket } = useSocket();
 
   const peerKey = (channelId: string, userId: string) =>
@@ -56,6 +64,42 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   const micStreamRef = useRef<MediaStream | null>(null);
 
   const [isSpeaker, setIsSpeaker] = useState(false);
+
+  const _handleAppStateChange = useCallback(
+    (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+        //clearInterval when your app has come back to the foreground
+        BackgroundTimer.clearInterval(interval.current);
+      } else {
+        //app goes to background
+        console.log('app goes to background');
+        //tell the server that your app is still online when your app detect that it goes to background
+        const i = BackgroundTimer.setInterval(() => {
+          console.log('connection status ', socket?.connected);
+          socket?.emit('online');
+        }, 5000);
+        appState.current = nextAppState;
+        interval.current = i;
+        console.log('AppState', appState.current);
+      }
+    },
+    [socket],
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      _handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [_handleAppStateChange]);
 
   const toggleSpeaker = () => {
     const next = !isSpeaker;
