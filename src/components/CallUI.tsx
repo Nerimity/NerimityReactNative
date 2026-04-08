@@ -58,8 +58,8 @@ export const CallUI = () => {
       )} */}
 
       {call.joinedChannelId ? (
-        <View>
-          <Button title="End Call" onPress={handleEndCall} />
+        <View style={style.controls}>
+          <Button title="End Call" onPress={handleEndCall} color="red" />
           <Button title="Toggle Speaker" onPress={call.toggleSpeaker} />
         </View>
       ) : null}
@@ -159,5 +159,10 @@ const style = StyleSheet.create({
   },
   voiceDisconnected: {
     opacity: 0.5,
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
   },
 });

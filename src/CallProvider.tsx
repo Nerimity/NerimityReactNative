@@ -9,9 +9,13 @@ import {
 } from 'react';
 import { useSocket, useSocketListener } from './SocketProvider';
 import { getUserId, getUserToken } from './EncryptedStore';
-import { SimplePeer, SimplePeerSignalData } from './SimplePeer';
+import SimplePeer, { SimplePeerData } from '@thaunknown/simple-peer/lite';
 import inCallManager from 'react-native-incall-manager';
 import { mediaDevices, MediaStream } from 'react-native-webrtc';
+import notifee, {
+  AndroidCategory,
+  AndroidImportance,
+} from '@notifee/react-native';
 
 // https://stackoverflow.com/questions/63432839/how-to-prevent-socket-io-from-disconnecting-when-react-native-app-is-in-backgrou
 import BackgroundTimer, { IntervalId } from 'react-native-background-timer';
@@ -33,7 +37,7 @@ interface UserJoinPayload {
 }
 
 interface SignalPayload {
-  signal: SimplePeerSignalData;
+  signal: SimplePeerData;
   fromUserId: string;
   channelId: string;
 }
@@ -44,14 +48,14 @@ export interface VoiceUser {
   userId: string;
   channelId: string;
   serverId: null | string;
-  peer?: SimplePeer;
+  peer?: SimplePeer.Instance;
   connected?: boolean;
 }
 
 export const CallProvider = (props: { children: JSX.Element }) => {
   const [joinedChannelId, setJoinedChannelId] = useState<string | null>(null);
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([]);
-  const peersRef = useRef<Map<string, SimplePeer>>(new Map());
+  const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
 
   const appState = useRef(AppState.currentState);
   const interval = useRef<IntervalId>(0);
@@ -64,6 +68,31 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   const micStreamRef = useRef<MediaStream | null>(null);
 
   const [isSpeaker, setIsSpeaker] = useState(false);
+
+  const startCallNotification = async () => {
+    const channelId = await notifee.createChannel({
+      id: 'voice_call',
+      name: 'Voice Call',
+      importance: AndroidImportance.HIGH,
+    });
+    await notifee.displayNotification({
+      title: 'Voice call in progress',
+      body: 'Tap to return to the call',
+      android: {
+        channelId,
+        asForegroundService: true,
+        ongoing: true,
+        onlyAlertOnce: true,
+        localOnly: true,
+        category: AndroidCategory.CALL,
+        pressAction: { id: 'default' },
+      },
+    });
+  };
+
+  const stopCallNotification = async () => {
+    await notifee.stopForegroundService();
+  };
 
   const _handleAppStateChange = useCallback(
     (nextAppState: AppStateStatus) => {
@@ -155,7 +184,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
     }
   });
 
-  const createPeer = (voiceUser: VoiceUser, signal?: SimplePeerSignalData) => {
+  const createPeer = (voiceUser: VoiceUser, signal?: SimplePeerData) => {
     const key = peerKey(voiceUser.channelId, voiceUser.userId);
     const existingPeer = peersRef.current.get(key);
 
@@ -165,7 +194,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
       new SimplePeer({
         trickle: true,
         initiator: !signal,
-        stream: micStreamRef.current!,
+        stream: micStreamRef.current ?? undefined,
         config: {
           iceServers: [
             {
@@ -201,13 +230,12 @@ export const CallProvider = (props: { children: JSX.Element }) => {
         });
       });
 
-      peer.on('signal', (newSignal: SimplePeerSignalData) => {
+      peer.on('signal', (newSignal: SimplePeerData) => {
         socket?.emit('voice:signal_send', {
           channelId: voiceUser.channelId,
           toUserId: voiceUser.userId,
           signal: newSignal,
         });
-        console.log('OWO EMITTT', newSignal);
       });
     }
     if (signal) {
@@ -216,8 +244,6 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   };
 
   useSocketListener('voice:signal_received', (data: SignalPayload) => {
-    console.log('SIGNAL RECEIVED', data);
-
     const key = peerKey(data.channelId, data.fromUserId);
     const existingPeer = peersRef.current.get(key);
 
@@ -234,6 +260,23 @@ export const CallProvider = (props: { children: JSX.Element }) => {
     }
   });
 
+  const leaveCall = useCallback(() => {
+    BackgroundTimer.clearInterval(interval.current);
+    stopCallNotification();
+    peersRef.current.forEach(peer => peer.destroy());
+    peersRef.current.clear();
+
+    setVoiceUsers(prev => {
+      return prev.map(u => {
+        return { ...u, connected: false, peer: undefined };
+      });
+    });
+    setJoinedChannelId(null);
+    inCallManager.stop();
+    micStreamRef.current?.getTracks().forEach(t => t.stop());
+    micStreamRef.current = null;
+  }, []);
+
   const joinCall = useCallback(
     async (channelId: string) => {
       leaveCall();
@@ -241,7 +284,9 @@ export const CallProvider = (props: { children: JSX.Element }) => {
         audio: true,
         video: false,
       });
-      console.log(stream);
+      console.log('stream tracks:', stream.getTracks());
+      console.log('track enabled:', stream.getTracks()[0]?.enabled);
+      console.log('track muted:', stream.getTracks()[0]?.muted);
       micStreamRef.current = stream;
       inCallManager.start({ media: 'audio' });
 
@@ -260,10 +305,11 @@ export const CallProvider = (props: { children: JSX.Element }) => {
       }).then(res => {
         if (res.ok) {
           setJoinedChannelId(channelId);
+          startCallNotification();
         }
       });
     },
-    [socket],
+    [leaveCall, socket?.id],
   );
 
   const endCall = useCallback(async () => {
@@ -280,23 +326,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
         socketId: socket?.id,
       }),
     });
-  }, [socket, joinedChannelId]);
-
-  const leaveCall = () => {
-    BackgroundTimer.clearInterval(interval.current);
-    peersRef.current.forEach(peer => peer.destroy());
-    peersRef.current.clear();
-
-    setVoiceUsers(prev => {
-      return prev.map(u => {
-        return { ...u, connected: false, peer: undefined };
-      });
-    });
-    setJoinedChannelId(null);
-    inCallManager.stop();
-    micStreamRef.current?.getTracks().forEach(t => t.stop());
-    micStreamRef.current = null;
-  };
+  }, [joinedChannelId, leaveCall, socket?.id]);
 
   const value = {
     joinCall,
