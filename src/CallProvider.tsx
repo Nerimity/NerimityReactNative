@@ -67,27 +67,27 @@ export const CallProvider = (props: { children: JSX.Element }) => {
 
   const _handleAppStateChange = useCallback(
     (nextAppState: AppStateStatus) => {
+      const isInCall = !!joinedChannelId;
+
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         console.log('App has come to the foreground!');
-        //clearInterval when your app has come back to the foreground
         BackgroundTimer.clearInterval(interval.current);
-      } else {
-        //app goes to background
-        console.log('app goes to background');
-        //tell the server that your app is still online when your app detect that it goes to background
+      } else if (isInCall) {
+        console.log('app goes to background while in call');
         const i = BackgroundTimer.setInterval(() => {
           console.log('connection status ', socket?.connected);
           socket?.emit('online');
         }, 5000);
-        appState.current = nextAppState;
         interval.current = i;
-        console.log('AppState', appState.current);
       }
+
+      appState.current = nextAppState;
+      console.log('AppState', appState.current);
     },
-    [socket],
+    [socket, joinedChannelId],
   );
 
   useEffect(() => {
@@ -283,6 +283,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   }, [socket, joinedChannelId]);
 
   const leaveCall = () => {
+    BackgroundTimer.clearInterval(interval.current);
     peersRef.current.forEach(peer => peer.destroy());
     peersRef.current.clear();
 
