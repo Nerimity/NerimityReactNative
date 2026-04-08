@@ -6,6 +6,6 @@
       "@thaunknown/simple-peer": ["./node_modules/@types/simple-peer"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/SimplePeer.js"],
   "exclude": ["**/node_modules", "**/Pods"],
 }

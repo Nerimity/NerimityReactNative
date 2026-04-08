@@ -9,9 +9,15 @@ import {
 } from 'react';
 import { useSocket, useSocketListener } from './SocketProvider';
 import { getUserId, getUserToken } from './EncryptedStore';
-import SimplePeer, { SimplePeerData } from '@thaunknown/simple-peer/lite';
+import SimplePeer from './SimplePeer';
 import inCallManager from 'react-native-incall-manager';
-import { mediaDevices, MediaStream } from 'react-native-webrtc';
+import {
+  mediaDevices,
+  MediaStream,
+  RTCIceCandidate,
+  RTCPeerConnection,
+  RTCSessionDescription,
+} from 'react-native-webrtc';
 import notifee, {
   AndroidCategory,
   AndroidImportance,
@@ -37,7 +43,7 @@ interface UserJoinPayload {
 }
 
 interface SignalPayload {
-  signal: SimplePeerData;
+  signal: any;
   fromUserId: string;
   channelId: string;
 }
@@ -48,14 +54,14 @@ export interface VoiceUser {
   userId: string;
   channelId: string;
   serverId: null | string;
-  peer?: SimplePeer.Instance;
+  peer?: any;
   connected?: boolean;
 }
 
 export const CallProvider = (props: { children: JSX.Element }) => {
   const [joinedChannelId, setJoinedChannelId] = useState<string | null>(null);
   const [voiceUsers, setVoiceUsers] = useState<VoiceUser[]>([]);
-  const peersRef = useRef<Map<string, SimplePeer.Instance>>(new Map());
+  const peersRef = useRef<Map<string, any>>(new Map());
 
   const appState = useRef(AppState.currentState);
   const interval = useRef<IntervalId>(0);
@@ -184,7 +190,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
     }
   });
 
-  const createPeer = (voiceUser: VoiceUser, signal?: SimplePeerData) => {
+  const createPeer = (voiceUser: VoiceUser, signal?: any) => {
     const key = peerKey(voiceUser.channelId, voiceUser.userId);
     const existingPeer = peersRef.current.get(key);
 
@@ -194,6 +200,11 @@ export const CallProvider = (props: { children: JSX.Element }) => {
       new SimplePeer({
         trickle: true,
         initiator: !signal,
+        wrtc: {
+          RTCPeerConnection,
+          RTCIceCandidate,
+          RTCSessionDescription,
+        },
         stream: micStreamRef.current ?? undefined,
         config: {
           iceServers: [
@@ -230,7 +241,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
         });
       });
 
-      peer.on('signal', (newSignal: SimplePeerData) => {
+      peer.on('signal', (newSignal: any) => {
         socket?.emit('voice:signal_send', {
           channelId: voiceUser.channelId,
           toUserId: voiceUser.userId,
