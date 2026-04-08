@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -26,6 +27,8 @@
 
       <service
         android:name="app.notifee.core.ForegroundService"
+        android:stopWithTask="true" 
+        tools:replace="android:stopWithTask"
         android:foregroundServiceType="microphone"
         android:exported="false" />
 

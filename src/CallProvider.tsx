@@ -296,9 +296,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
         audio: true,
         video: false,
       });
-      console.log('stream tracks:', stream.getTracks());
-      console.log('track enabled:', stream.getTracks()[0]?.enabled);
-      console.log('track muted:', stream.getTracks()[0]?.muted);
+
       micStreamRef.current = stream;
       inCallManager.start({ media: 'audio' });
 
@@ -325,6 +323,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   );
 
   const endCall = useCallback(async () => {
+    if (!joinedChannelId) return;
     leaveCall();
 
     const token = await getUserToken();

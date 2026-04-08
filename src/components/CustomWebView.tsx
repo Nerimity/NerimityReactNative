@@ -294,6 +294,7 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         TrackPlayer.pause();
       }
       if (event === 'logout') {
+        call.endCall();
         console.log('logged out');
         socket?.removeAllListeners();
         socket?.disconnect();
