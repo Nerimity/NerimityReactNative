@@ -255,6 +255,7 @@ export const CallProvider = (props: { children: JSX.Element }) => {
   };
 
   useSocketListener('voice:signal_received', (data: SignalPayload) => {
+    if (!joinedChannelId) return;
     const key = peerKey(data.channelId, data.fromUserId);
     const existingPeer = peersRef.current.get(key);
 

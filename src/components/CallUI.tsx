@@ -40,7 +40,7 @@ export const CallUI = () => {
     call.endCall();
   };
 
-  return currentChannelId() ? (
+  return call.joinedChannelId ? (
     <View style={style.container}>
       <View style={style.voiceItems}>
         {channelVoiceUsers().map(voice => (
@@ -51,18 +51,11 @@ export const CallUI = () => {
           />
         ))}
       </View>
-      {/* {call.joinedChannelId !== currentChannelId() ? (
-        <Button title="Call" onPress={handleCall} />
-      ) : (
-        <Button title="End Call" onPress={handleEndCall} />
-      )} */}
 
-      {call.joinedChannelId ? (
-        <View style={style.controls}>
-          <Button title="End Call" onPress={handleEndCall} color="red" />
-          <Button title="Toggle Speaker" onPress={call.toggleSpeaker} />
-        </View>
-      ) : null}
+      <View style={style.controls}>
+        <Button title="End Call" onPress={handleEndCall} color="red" />
+        <Button title="Toggle Speaker" onPress={call.toggleSpeaker} />
+      </View>
     </View>
   ) : null;
 };
