@@ -1,8 +1,11 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "types": ["jest"]
+    "types": ["jest"],
+    "paths": {
+      "@thaunknown/simple-peer": ["./node_modules/@types/simple-peer"]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": ["**/*.ts", "**/*.tsx", "src/SimplePeer.js"],
+  "exclude": ["**/node_modules", "**/Pods"],
 }
