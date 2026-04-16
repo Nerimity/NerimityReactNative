@@ -155,7 +155,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
       pressAction: {
         id: 'default',
       },
-      groupId: Math.random().toString(),
+      groupId: data.channelId,
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,
       channelId: ANDROID_CHANNELS.serverMessages,
@@ -217,7 +217,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
       pressAction: {
         id: 'default',
       },
-      groupId: Math.random().toString(),
+      groupId: data.channelId,
       visibility: AndroidVisibility.PUBLIC,
       circularLargeIcon: true,
       channelId: ANDROID_CHANNELS.dmMessages,
