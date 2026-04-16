@@ -4,9 +4,9 @@ import notifee, {
   AndroidVisibility,
 } from '@notifee/react-native';
 import env from './env';
-import {getUserId} from './EncryptedStore';
-import {dmChannelMatch, serverChannelMatch} from './UrlPatternMatchers';
-import {currentUrl} from './components/CustomWebView';
+import { getUserId } from './EncryptedStore';
+import { dmChannelMatch, serverChannelMatch } from './UrlPatternMatchers';
+import { currentUrl } from './components/CustomWebView';
 
 export enum MessageType {
   CONTENT = 0,
@@ -15,6 +15,8 @@ export enum MessageType {
   KICK_USER = 3,
   BAN_USER = 4,
   STARTED_CALL = 5,
+  BUMP_SERVER = 6,
+  PINNED_MESSAGE = 7,
 }
 
 const ANDROID_CHANNELS = {
@@ -64,7 +66,7 @@ export async function handlePushNotification(
   isBackground: boolean,
 ) {
   if (!isBackground) {
-    const {channelId} =
+    const { channelId } =
       dmChannelMatch(currentUrl) || serverChannelMatch(currentUrl) || {};
     if (channelId && data.channelId === channelId) {
       return;
@@ -79,6 +81,29 @@ export async function handlePushNotification(
   }
 }
 
+function getNotificationText(type: number) {
+  if (type === MessageType.JOIN_SERVER) {
+    return 'has joined the server.';
+  }
+  if (type === MessageType.LEAVE_SERVER) {
+    return 'has left the server.';
+  }
+  if (type === MessageType.BAN_USER) {
+    return 'has been banned.';
+  }
+  if (type === MessageType.KICK_USER) {
+    return 'has been kicked.';
+  }
+  if (type === MessageType.STARTED_CALL) {
+    return 'has started a call.';
+  }
+  if (type === MessageType.BUMP_SERVER) {
+    return 'has bumped the server.';
+  }
+  if (type === MessageType.PINNED_MESSAGE) {
+    return 'has pinned a message.';
+  }
+}
 export async function showServerPushNotification(data: ServerNotificationData) {
   const existingNotification = await notifee
     .getDisplayedNotifications()
@@ -107,20 +132,9 @@ export async function showServerPushNotification(data: ServerNotificationData) {
 
   const type = parseInt(data.type);
 
-  if (type === MessageType.JOIN_SERVER) {
-    content = 'has joined the server.';
-  }
-  if (type === MessageType.LEAVE_SERVER) {
-    content = 'has left the server.';
-  }
-  if (type === MessageType.BAN_USER) {
-    content = 'has been banned.';
-  }
-  if (type === MessageType.KICK_USER) {
-    content = 'has been kicked.';
-  }
-  if (type === MessageType.STARTED_CALL) {
-    content = 'has started a call.';
+  const typeText = getNotificationText(type);
+  if (typeText) {
+    content = typeText;
   }
 
   let newLines = [username, content];
@@ -146,7 +160,7 @@ export async function showServerPushNotification(data: ServerNotificationData) {
       circularLargeIcon: true,
       channelId: ANDROID_CHANNELS.serverMessages,
       ...(data.sAvatar
-        ? {largeIcon: `${env.NERIMITY_CDN}${data.sAvatar}`}
+        ? { largeIcon: `${env.NERIMITY_CDN}${data.sAvatar}` }
         : undefined),
       style: {
         type: AndroidStyle.INBOX,
@@ -183,8 +197,9 @@ export async function showDMNotificationData(data: DMNotificationData) {
   }
 
   const type = parseInt(data.type);
-  if (type === MessageType.STARTED_CALL) {
-    newLine = 'has started a call.';
+  const typeText = getNotificationText(type);
+  if (typeText) {
+    newLine = typeText;
   }
 
   // Display a notification
@@ -207,7 +222,7 @@ export async function showDMNotificationData(data: DMNotificationData) {
       circularLargeIcon: true,
       channelId: ANDROID_CHANNELS.dmMessages,
       ...(data.uAvatar
-        ? {largeIcon: `${env.NERIMITY_CDN}${data.uAvatar}`}
+        ? { largeIcon: `${env.NERIMITY_CDN}${data.uAvatar}` }
         : undefined),
       style: {
         type: AndroidStyle.INBOX,
