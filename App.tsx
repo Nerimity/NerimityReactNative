@@ -34,6 +34,7 @@ import env from './src/env';
 import { openDMChannelRequest } from './src/services/UserService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CallUI } from './src/components/CallUI';
+import { getVideoAudioOutput } from './src/callAudio';
 import { SocketProvider } from './src/SocketProvider';
 import { CallProvider } from './src/CallProvider';
 import { WebViewProvider } from './src/WebViewProvider';
@@ -190,6 +191,7 @@ function App(): JSX.Element {
                     <CustomVideo
                       ref={videoRef}
                       videoUrl={videoUrl!}
+                      audioOutput={getVideoAudioOutput()}
                       onVideoEnd={() => {
                         setVideoUrl(null);
                       }}

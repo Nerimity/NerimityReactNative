@@ -24,6 +24,7 @@ import { decompressObject } from '../zstd';
 import { useCall } from '../CallProvider';
 import { useWebView } from '../WebViewProvider';
 import { User, useUserStore } from '../UserStoreProvider';
+import { restoreCallAudio } from '../callAudio';
 
 export interface CustomWebViewRef {
   goBack: () => boolean;
@@ -153,6 +154,51 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
         const joinCall = (channelId) => {
           post('joinCall', {channelId});
         }
+
+        // Voice message button: the website starts recording on pointerdown
+        // and stops on a global pointerup (hold-to-record). Turn it into
+        // click-to-start / click-to-stop for the native app.
+        const patchVoiceRecorderButton = () => {
+          const button = document.querySelector('.voice-recorder-button');
+          if (!button || button.dataset.rnClickToRecord) return;
+          button.dataset.rnClickToRecord = '1';
+
+          let recording = false;
+          let stopping = false;
+
+          button.addEventListener('pointerdown', () => {
+            if (!recording) {
+              // First click: let the site's onPointerDown start recording.
+              recording = true;
+              return;
+            }
+            if (stopping) return;
+            stopping = true;
+            // The site listens for pointerup on document to stop and save.
+            document.dispatchEvent(new Event('pointerup', {bubbles: true}));
+            setTimeout(() => {
+              recording = false;
+              stopping = false;
+            }, 1000);
+          }, true);
+
+          // Don't let the real pointerup of the first click reach document and
+          // stop the recording immediately.
+          button.addEventListener('pointerup', event => {
+            event.stopPropagation();
+          }, true);
+
+          // A simple tap must not be treated as "drag away to cancel".
+          button.addEventListener('touchmove', event => {
+            event.stopImmediatePropagation();
+          }, true);
+        };
+
+        new MutationObserver(patchVoiceRecorderButton).observe(document, {
+          childList: true,
+          subtree: true,
+        });
+        patchVoiceRecorderButton();
       
         window.reactNative = {
           post,
@@ -272,6 +318,9 @@ export const CustomWebView = forwardRef<CustomWebViewRef, CustomWebViewProps>(
 
       if (event === 'playVideo') {
         const { url } = payload;
+        // Re-assert the call route before the native player changes the
+        // Android audio mode, so the headset/Bluetooth route survives.
+        void restoreCallAudio();
         props.onVideoClick(url);
       }
       if (event === 'playAudio') {

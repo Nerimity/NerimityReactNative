@@ -6,6 +6,7 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.oney.WebRTCModule.WebRTCModuleOptions
 
 class MainApplication : Application(), ReactApplication {
 
@@ -16,12 +17,16 @@ class MainApplication : Application(), ReactApplication {
         PackageList(this).packages.apply {
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // add(MyReactNativePackage())
+          add(OrientationPackage())
         },
     )
   }
 
   override fun onCreate() {
     super.onCreate()
+    // Keeps the screen capture alive with a media-projection foreground
+    // service when getDisplayMedia() is used for call screen sharing.
+    WebRTCModuleOptions.getInstance().enableMediaProjectionService = true
     loadReactNative(this)
   }
 }

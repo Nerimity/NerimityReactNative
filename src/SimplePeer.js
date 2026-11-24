@@ -7,6 +7,7 @@ const stream = require('readable-stream');
 const queueMicrotask = require('queue-microtask'); // TODO: remove when Node 10 is not supported
 const errCode = require('err-code');
 const { Buffer } = require('buffer');
+const { MediaStream } = require('react-native-webrtc');
 
 const MAX_BUFFERED_AMOUNT = 64 * 1024;
 const ICECOMPLETE_TIMEOUT = 5 * 1000;
@@ -1152,7 +1153,14 @@ class Peer extends stream.Duplex {
   _onTrack(event) {
     if (this.destroyed) return;
 
-    event.streams.forEach(eventStream => {
+    let streams = event.streams;
+    if (!streams || !streams.length) {
+      // react-native-webrtc can fire a track event without stream info
+      // (Unified Plan). Wrap the track so 'track'/'stream' still reach the app.
+      streams = [new MediaStream([event.track])];
+    }
+
+    streams.forEach(eventStream => {
       this._debug('on track');
       this.emit('track', event.track, eventStream);
 
